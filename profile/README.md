@@ -58,19 +58,6 @@ marked as open.
   `β(a) + β(b) − β(a + b)` takes values only in `{−1, 0, 1}` for all natural inputs.
   [Lean](https://github.com/the-omega-institute/trureturing/blob/dev/D5/S1/Deficit/DeficitThreeValued.lean)
 
-## Repositories
-
-| Repository | Role |
-|---|---|
-| [trureturing](https://github.com/the-omega-institute/trureturing) | The library: Lean 4 source, problems, blueprint, frozen ledger and harness |
-| [trureturing-mdbook](https://github.com/the-omega-institute/trureturing-mdbook) | Generator for the [browsable book](https://the-omega-institute.github.io/trureturing-mdbook/) |
-| [trureturing-pages](https://github.com/the-omega-institute/trureturing-pages) | Public [atlas](https://the-omega-institute.github.io/trureturing-pages/atlas.html) of the frozen truth graph |
-| [trureturing-paper](https://github.com/the-omega-institute/trureturing-paper) | Research-candidate pipeline from certified theorems to papers |
-| [trureturing-intuition](https://github.com/the-omega-institute/trureturing-intuition) | Verifier-grounded structural intuition |
-| [trureturing-film](https://github.com/the-omega-institute/trureturing-film) | Code-generated films about trureturing ([releases](https://github.com/the-omega-institute/trureturing-film/releases)) |
-| [a076502-padovan](https://github.com/the-omega-institute/a076502-padovan) | Reproducibility materials for the A076502 paper |
-| [sair-eqt2-stage2-solver](https://github.com/the-omega-institute/sair-eqt2-stage2-solver) | Certificate-producing solver for SAIR EQT2 Stage 2 |
-
 ## Take part
 
 Bring a question that matters to you. In Claude Code or Codex, paste:
