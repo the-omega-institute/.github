@@ -2,6 +2,8 @@
 
 **trureturing: a scientific method for AI to discover truth and find its next question.**
 
+[![TRURETURING — truth is discovered](https://raw.githubusercontent.com/the-omega-institute/.github/main/profile/banner.jpg)](https://github.com/the-omega-institute/trureturing-film)
+
 We build a Lean 4 library in which questions, computation, checked proofs and open
 boundaries accumulate as reusable knowledge. Each proved result states its exact
 assumptions; each refutation carries a machine-checked witness; each open question is
