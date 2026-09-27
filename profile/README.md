@@ -10,7 +10,8 @@ marked as open.
 **[→ trureturing](https://github.com/the-omega-institute/trureturing)** ·
 [Read the book](https://the-omega-institute.github.io/trureturing-mdbook/) ·
 [Explore the atlas](https://the-omega-institute.github.io/trureturing-pages/atlas.html) ·
-[Vision](https://github.com/the-omega-institute/trureturing/blob/dev/docs/VISION.md)
+[Vision](https://github.com/the-omega-institute/trureturing/blob/dev/docs/VISION.md) ·
+[Watch the films](https://github.com/the-omega-institute/trureturing-film)
 
 ## By the numbers
 
