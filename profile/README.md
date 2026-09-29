@@ -28,10 +28,6 @@ marked as open.
 
 ## Publications
 
-- H. Ma, W. Zhang.
-  **Canonical Zeckendorf Normalization and sharp iteration depth of the Berstel Adder.**
-  *RAIRO – Theoretical Informatics and Applications* 60 (2026) 29 ·
-  [doi:10.1051/ita/2026032](https://www.rairo-ita.org/articles/ita/abs/2026/01/ita20260032/ita20260032.html)
 - B. Cloitre, H. Ma, W. Zhang.
   **A Padovan-automatic description of a nested recurrence.**
   [arXiv:2609.33421](https://arxiv.org/abs/2609.33421), 2026 ·
@@ -41,6 +37,10 @@ marked as open.
   **A Certificate-Producing Cascade for Equational Implication: The SAIR EQT2 Stage 2 Solver.**
   [arXiv:2609.00706](https://arxiv.org/abs/2609.00706), 2026 ·
   [solver](https://github.com/the-omega-institute/sair-eqt2-stage2-solver)
+- H. Ma, W. Zhang.
+  **Canonical Zeckendorf Normalization and sharp iteration depth of the Berstel Adder.**
+  *RAIRO – Theoretical Informatics and Applications* 60 (2026) 29 ·
+  [doi:10.1051/ita/2026032](https://www.rairo-ita.org/articles/ita/abs/2026/01/ita20260032/ita20260032.html)
 - M. I. Cázares, W. Zhang, H. Ma.
   **Mechanism-level routing failure in LLMs over Lean-verified algebraic structures.**
   [arXiv:2607.04534](https://arxiv.org/abs/2607.04534), 2026
