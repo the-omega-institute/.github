@@ -33,8 +33,9 @@ marked as open.
   *RAIRO – Theoretical Informatics and Applications* 60 (2026) 29 ·
   [doi:10.1051/ita/2026032](https://www.rairo-ita.org/articles/ita/abs/2026/01/ita20260032/ita20260032.html)
 - B. Cloitre, H. Ma, W. Zhang.
-  **A Padovan-automatic description of a nested recurrence.** Zenodo, 2026.
-  [doi:10.5281/zenodo.22979217](https://doi.org/10.5281/zenodo.22979217) ·
+  **A Padovan-automatic description of a nested recurrence.**
+  [arXiv:2609.33421](https://arxiv.org/abs/2609.33421), 2026 ·
+  [Zenodo: doi:10.5281/zenodo.22979217](https://doi.org/10.5281/zenodo.22979217) ·
   [manuscript, certificates and Lean proofs](https://github.com/the-omega-institute/a076502-padovan)
 - H. Ma, W. Zhang, M. I. Cázares.
   **A Certificate-Producing Cascade for Equational Implication: The SAIR EQT2 Stage 2 Solver.**
