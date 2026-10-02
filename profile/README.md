@@ -18,7 +18,7 @@ definitions, assumptions, proofs and dependencies that anyone can inspect and bu
 
 - **Oct 2026** · Spoke with [SAIR](https://sair.foundation/) about their
   [Open Math Model initiative](https://terrytao.wordpress.com/2026/09/18/sairs-open-math-model-initiative/).
-  There is a lot of overlap with what we are building at trureturing.
+  We were glad to find much common ground and look forward to continuing the conversation.
 - **Sep 2026** · Poster accepted at [NeurIPS 2026 MATH-AI](https://mathai-2026.github.io/):
   *Cross-Engine Admission Contracts for Autonomous Formalization* (H. Ma, W. Zhang).
   We look forward to presenting it in Atlanta on 12 December.
