@@ -2,8 +2,6 @@
 
 **Human intuition, machine rigor, and a research loop that keeps going.**
 
-[![TRURETURING — truth is discovered](https://raw.githubusercontent.com/the-omega-institute/.github/main/profile/banner.jpg)](https://github.com/the-omega-institute/trureturing-film)
-
 **[trureturing](https://github.com/the-omega-institute/trureturing)** is an open Lean 4
 library that human mathematicians and AI agents build together. It grows only when a
 new result passes the Lean kernel. We see it as a white-box model of knowledge:
@@ -32,10 +30,10 @@ definitions, assumptions, proofs and dependencies that anyone can inspect and bu
   (B. Cloitre, H. Ma, W. Zhang).
   [arXiv:2609.33421](https://arxiv.org/abs/2609.33421) ·
   [code](https://github.com/the-omega-institute/a076502-padovan)
-- **Sep 2026** · New preprint: *A Certificate-Producing Cascade for Equational Implication:
+- **Aug 2026** · New preprint: *A Certificate-Producing Cascade for Equational Implication:
   The SAIR EQT2 Stage 2 Solver* (H. Ma, W. Zhang, M. I. Cázares).
   [arXiv:2609.00706](https://arxiv.org/abs/2609.00706)
-- **2026** · Published in *RAIRO – Theoretical Informatics and Applications*:
+- **Aug 2026** · Published in *RAIRO – Theoretical Informatics and Applications*:
   *Canonical Zeckendorf Normalization and sharp iteration depth of the Berstel Adder*
   (H. Ma, W. Zhang). [doi:10.1051/ita/2026032](https://www.rairo-ita.org/articles/ita/abs/2026/01/ita20260032/ita20260032.html)
 - **Jul 2026** · New preprint: *Mechanism-level routing failure in LLMs over Lean-verified
