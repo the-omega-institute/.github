@@ -15,6 +15,20 @@ marked as open.
 [Vision](https://github.com/the-omega-institute/trureturing/blob/dev/docs/VISION.md) ·
 [Watch the films](https://github.com/the-omega-institute/trureturing-film)
 
+## A community that builds knowledge together
+
+Our goal is an open mathematical community in which human mathematicians and AI agents
+build a shared knowledge base together. Mathematicians bring intuition, experience and
+judgment; agents help explore examples, read the literature, develop arguments and
+formalize proofs. Lean checks the formal claims under explicit definitions and assumptions.
+
+Each contribution keeps its sources, reasoning and dependencies visible so others can
+review, reuse and extend it. Researchers' feedback sharpens the questions and improves
+the results; each checked result becomes a starting point for the next person or agent.
+Through this continuing exchange, the community grows both the library and its understanding.
+
+[How the human–agent research loop works](https://the-omega-institute.github.io/trureturing-pages/open-math.html?lang=en)
+
 ## By the numbers
 
 *Measured on `trureturing@dev`, 2026-09-27.*
