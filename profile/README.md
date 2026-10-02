@@ -44,6 +44,14 @@ marked as open.
 - M. I. Cázares, W. Zhang, H. Ma.
   **Mechanism-level routing failure in LLMs over Lean-verified algebraic structures.**
   [arXiv:2607.04534](https://arxiv.org/abs/2607.04534), 2026
+- H. Ma, W. Zhang.
+  **Cross-Engine Admission Contracts for Autonomous Formalization.**
+  NeurIPS 2026 MATH-AI Workshop, accepted poster ·
+  [OpenReview](https://openreview.net/forum?id=xOAZvprLXO)
+- H. Ma, R. Sahbi, W. Zhang.
+  **Sub-quorum colorings of graphs.**
+  [arXiv:2609.25128](https://arxiv.org/abs/2609.25128), 2026 ·
+  [manuscript, certificates and Lean proofs](https://github.com/the-omega-institute/subquorum-colorings)
 
 ## Selected results
 
