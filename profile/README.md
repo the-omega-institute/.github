@@ -42,10 +42,17 @@ Through this continuing exchange, the community grows both the library and its u
 
 ## Publications
 
+- H. Ma, W. Zhang.
+  **Cross-Engine Admission Contracts for Autonomous Formalization.**
+  NeurIPS 2026 MATH-AI Workshop, accepted poster ·
+  [OpenReview](https://openreview.net/forum?id=xOAZvprLXO)
+- H. Ma, R. Sahbi, W. Zhang.
+  **Sub-quorum colorings of graphs.**
+  [arXiv:2609.25128](https://arxiv.org/abs/2609.25128), 2026 ·
+  [manuscript, certificates and Lean proofs](https://github.com/the-omega-institute/subquorum-colorings)
 - B. Cloitre, H. Ma, W. Zhang.
   **A Padovan-automatic description of a nested recurrence.**
   [arXiv:2609.33421](https://arxiv.org/abs/2609.33421), 2026 ·
-  [Zenodo: doi:10.5281/zenodo.22979217](https://doi.org/10.5281/zenodo.22979217) ·
   [manuscript, certificates and Lean proofs](https://github.com/the-omega-institute/a076502-padovan)
 - H. Ma, W. Zhang, M. I. Cázares.
   **A Certificate-Producing Cascade for Equational Implication: The SAIR EQT2 Stage 2 Solver.**
@@ -58,14 +65,6 @@ Through this continuing exchange, the community grows both the library and its u
 - M. I. Cázares, W. Zhang, H. Ma.
   **Mechanism-level routing failure in LLMs over Lean-verified algebraic structures.**
   [arXiv:2607.04534](https://arxiv.org/abs/2607.04534), 2026
-- H. Ma, W. Zhang.
-  **Cross-Engine Admission Contracts for Autonomous Formalization.**
-  NeurIPS 2026 MATH-AI Workshop, accepted poster ·
-  [OpenReview](https://openreview.net/forum?id=xOAZvprLXO)
-- H. Ma, R. Sahbi, W. Zhang.
-  **Sub-quorum colorings of graphs.**
-  [arXiv:2609.25128](https://arxiv.org/abs/2609.25128), 2026 ·
-  [manuscript, certificates and Lean proofs](https://github.com/the-omega-institute/subquorum-colorings)
 
 ## Selected results
 
