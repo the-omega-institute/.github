@@ -25,17 +25,12 @@ dependencies, so anyone can inspect it and build on it.
 - **Sep 2026** · *Cross-Engine Admission Contracts for Autonomous Formalization* accepted
   as a poster at [NeurIPS 2026 MATH-AI](https://mathai-2026.github.io/). Looking forward
   to presenting it in Atlanta on 12 December. [OpenReview](https://openreview.net/forum?id=xOAZvprLXO)
-- **Sep 2026** · With **Reza Nikandish**: `χ(O_6*) = 15` for binary subspace orthogonality
-  graphs, kernel-checked in Lean; a joint manuscript is in preparation.
-  [Workspace](https://github.com/the-omega-institute/binary-subspace-orthogonality)
 - **Sep 2026** · With **Rafik Sahbi**: his hypercube conjecture proved for every `n ≥ 2`.
   [arXiv:2609.25128](https://arxiv.org/abs/2609.25128) ·
   [code](https://github.com/the-omega-institute/subquorum-colorings)
 - **Sep 2026** · With **Benoît Cloitre**: OEIS A076502 described by a Padovan automaton.
   [arXiv:2609.33421](https://arxiv.org/abs/2609.33421) ·
   [code](https://github.com/the-omega-institute/a076502-padovan)
-- **Sep 2026** · With **John M. Campbell** and **Benoît Cloitre**: Campbell's nested
-  recurrence solved completely. [Collaboration](https://github.com/the-omega-institute/nested-recurrences)
 - **Sep 2026** · With **Manuel Israel Cázares**: a certificate-producing solver for SAIR EQT2.
   [arXiv:2609.00706](https://arxiv.org/abs/2609.00706)
 - **2026** · Berstel adder paper published in *RAIRO-ITA* 60, article 29.
@@ -45,14 +40,10 @@ dependencies, so anyone can inspect it and build on it.
 
 ## Open right now
 
-- Does Cloitre's sequence satisfy `C(n)/n → (√5 − 1)/2`?
-  [Status](https://github.com/the-omega-institute/nested-recurrences/blob/main/STATUS.md)
-- What is `χ(O_n*)` for `n ≥ 7`?
-  [Dimension six](https://github.com/the-omega-institute/binary-subspace-orthogonality/blob/main/notes/dimension-six.md)
-- Does Sahbi's grid formula hold at every width and length?
-  [Agenda](https://github.com/the-omega-institute/subquorum-colorings/blob/main/docs/RESEARCH.md)
-- 537 more problems from the literature, each with sources.
-  [Atlas](https://the-omega-institute.github.io/trureturing-pages/atlas.html)
+The [atlas](https://the-omega-institute.github.io/trureturing-pages/atlas.html) maps 537
+problems from OEIS, Erdős problems and recent papers, each with its sources. Every
+proved result states its assumptions, every refutation carries a checked witness, and
+every open boundary is marked as open. Pick one.
 
 ## By the numbers
 
