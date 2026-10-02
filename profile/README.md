@@ -1,13 +1,13 @@
 # The Omega Institute
 
-**Open mathematics that grows by checked truth, not by trained weights.**
+**Human intuition, machine rigor, and a research loop that keeps going.**
 
 [![TRURETURING — truth is discovered](https://raw.githubusercontent.com/the-omega-institute/.github/main/profile/banner.jpg)](https://github.com/the-omega-institute/trureturing-film)
 
 **[trureturing](https://github.com/the-omega-institute/trureturing)** is an open Lean 4
 library that human mathematicians and AI agents build together. It grows only when a
-new result passes the Lean kernel, and every result keeps its sources, assumptions and
-dependencies, so anyone can inspect it and build on it.
+new result passes the Lean kernel. We see it as a white-box model of knowledge:
+definitions, assumptions, proofs and dependencies that anyone can inspect and build on.
 
 > **Question → explore with AI → check in Lean → keep → feedback from mathematicians → next question**
 
@@ -19,23 +19,27 @@ dependencies, so anyone can inspect it and build on it.
 ## Research news
 
 - **Oct 2026** · Spoke with [SAIR](https://sair.foundation/) about their
-  [Open Math Model initiative](https://terrytao.wordpress.com/2026/09/18/sairs-open-math-model-initiative/)
-  and found a lot of overlap: human intuition, machine rigor, and a white-box body of
-  knowledge that anyone can inspect and extend.
-- **Sep 2026** · *Cross-Engine Admission Contracts for Autonomous Formalization* accepted
-  as a poster at [NeurIPS 2026 MATH-AI](https://mathai-2026.github.io/). Looking forward
-  to presenting it in Atlanta on 12 December. [OpenReview](https://openreview.net/forum?id=xOAZvprLXO)
-- **Sep 2026** · With **Rafik Sahbi**: his hypercube conjecture proved for every `n ≥ 2`.
+  [Open Math Model initiative](https://terrytao.wordpress.com/2026/09/18/sairs-open-math-model-initiative/).
+  There is a lot of overlap with what we are building at trureturing.
+- **Sep 2026** · Poster accepted at [NeurIPS 2026 MATH-AI](https://mathai-2026.github.io/):
+  *Cross-Engine Admission Contracts for Autonomous Formalization* (H. Ma, W. Zhang).
+  We look forward to presenting it in Atlanta on 12 December.
+  [OpenReview](https://openreview.net/forum?id=xOAZvprLXO)
+- **Sep 2026** · New preprint: *Sub-quorum colorings of graphs* (H. Ma, R. Sahbi, W. Zhang).
   [arXiv:2609.25128](https://arxiv.org/abs/2609.25128) ·
   [code](https://github.com/the-omega-institute/subquorum-colorings)
-- **Sep 2026** · With **Benoît Cloitre**: OEIS A076502 described by a Padovan automaton.
+- **Sep 2026** · New preprint: *A Padovan-automatic description of a nested recurrence*
+  (B. Cloitre, H. Ma, W. Zhang).
   [arXiv:2609.33421](https://arxiv.org/abs/2609.33421) ·
   [code](https://github.com/the-omega-institute/a076502-padovan)
-- **Sep 2026** · With **Manuel Israel Cázares**: a certificate-producing solver for SAIR EQT2.
+- **Sep 2026** · New preprint: *A Certificate-Producing Cascade for Equational Implication:
+  The SAIR EQT2 Stage 2 Solver* (H. Ma, W. Zhang, M. I. Cázares).
   [arXiv:2609.00706](https://arxiv.org/abs/2609.00706)
-- **2026** · Berstel adder paper published in *RAIRO-ITA* 60, article 29.
-  [doi:10.1051/ita/2026032](https://www.rairo-ita.org/articles/ita/abs/2026/01/ita20260032/ita20260032.html)
-- **Jul 2026** · Routing failure of LLMs over Lean-verified algebra.
+- **2026** · Published in *RAIRO – Theoretical Informatics and Applications*:
+  *Canonical Zeckendorf Normalization and sharp iteration depth of the Berstel Adder*
+  (H. Ma, W. Zhang). [doi:10.1051/ita/2026032](https://www.rairo-ita.org/articles/ita/abs/2026/01/ita20260032/ita20260032.html)
+- **Jul 2026** · New preprint: *Mechanism-level routing failure in LLMs over Lean-verified
+  algebraic structures* (M. I. Cázares, W. Zhang, H. Ma).
   [arXiv:2607.04534](https://arxiv.org/abs/2607.04534)
 
 ## Open right now
