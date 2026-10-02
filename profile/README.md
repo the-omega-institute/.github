@@ -14,7 +14,6 @@ built on.
 
 **[Explore the atlas](https://the-omega-institute.github.io/trureturing-pages/atlas.html)** ·
 [Read the book](https://the-omega-institute.github.io/trureturing-mdbook/) ·
-[How the loop works](https://the-omega-institute.github.io/trureturing-pages/open-math.html?lang=en) ·
 [Vision](https://github.com/the-omega-institute/trureturing/blob/dev/docs/VISION.md) ·
 [Watch the films](https://github.com/the-omega-institute/trureturing-film)
 
@@ -38,6 +37,16 @@ working mathematicians; the research news below shows where it has led.
 
 ## Research news
 
+- **Oct 2026 · Talking with SAIR about the Open Math Model.**
+  We spoke with [SAIR](https://sair.foundation/) about their
+  [Open Math Model (OMM) initiative](https://terrytao.wordpress.com/2026/09/18/sairs-open-math-model-initiative/)
+  and found a lot of overlap with what we are building: human intuition combined with
+  machine rigor, in a research loop that keeps going. We see the growing library as a
+  white-box model of knowledge: definitions, assumptions, proofs and dependencies that
+  anyone can inspect and build on. The most encouraging part has been hearing back from
+  mathematicians: our proofs have helped answer their questions, and their feedback,
+  computations and new ideas are guiding what we work on next. We are exploring how far
+  today's models and agents can go within a rigorous, open research harness.
 - **Sep 2026 · Poster accepted at NeurIPS 2026 MATH-AI.**
   *Cross-Engine Admission Contracts for Autonomous Formalization* (H. Ma, W. Zhang)
   audits what a mathematical-agent pipeline should require before a formal result is
@@ -126,6 +135,9 @@ the general question is waiting for a new idea.
   [Lean](https://github.com/the-omega-institute/trureturing/blob/dev/D5/S1/Deficit/DeficitThreeValued.lean)
 
 ## Bring a question
+
+Bring a question, an idea, a model, or an agent. Make one step precise, and give
+someone else a place to start.
 
 Have a conjecture you would like checked, extended or refuted? Open an issue on
 [trureturing](https://github.com/the-omega-institute/trureturing/issues), or explore
