@@ -2,6 +2,8 @@
 
 **Human intuition, machine rigor, and a research loop that keeps going.**
 
+<a href="https://github.com/the-omega-institute/trureturing-film"><img src="https://raw.githubusercontent.com/the-omega-institute/.github/main/profile/banner.jpg" width="720" alt="TRURETURING — truth is discovered"></a>
+
 **[trureturing](https://github.com/the-omega-institute/trureturing)** is an open Lean 4
 library that human mathematicians and AI agents build together. It grows only when a
 new result passes the Lean kernel. We see it as a white-box model of knowledge:
