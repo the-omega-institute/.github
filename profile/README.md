@@ -1,15 +1,16 @@
 # The Omega Institute
 
-**An open math model that grows by adding checked truth, not by training weights.**
+**Open mathematics that grows by checked truth, not by trained weights.**
 
 [![TRURETURING — truth is discovered](https://raw.githubusercontent.com/the-omega-institute/.github/main/profile/banner.jpg)](https://github.com/the-omega-institute/trureturing-film)
 
-Open models usually publish weights. We publish mathematics.
-**[trureturing](https://github.com/the-omega-institute/trureturing)** is an open math
-model whose entire state is a Lean 4 library: questions, computations, proofs,
-refutations and open boundaries, each with its sources and exact assumptions.
-The model improves only when a new result passes the Lean kernel and enters the
-ledger. Everything it knows can be read, checked, cited and built on.
+**[trureturing](https://github.com/the-omega-institute/trureturing)** is an open
+Lean 4 library in which human mathematicians and AI agents build shared knowledge:
+questions, computations, proofs, refutations and open boundaries, each with its
+sources and exact assumptions. Its progress is counted in checked results rather
+than trained parameters: the library grows only when a new result passes the Lean
+kernel and enters the ledger. Everything it holds can be read, checked, cited and
+built on.
 
 **[Explore the atlas](https://the-omega-institute.github.io/trureturing-pages/atlas.html)** ·
 [Read the book](https://the-omega-institute.github.io/trureturing-mdbook/) ·
