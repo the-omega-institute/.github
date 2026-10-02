@@ -1,101 +1,70 @@
 # The Omega Institute
 
-**trureturing: a scientific method for AI to discover truth and find its next question.**
+**Human intuition, machine rigor, and a research loop that keeps going.**
 
-[![TRURETURING — truth is discovered](https://raw.githubusercontent.com/the-omega-institute/.github/main/profile/banner.jpg)](https://github.com/the-omega-institute/trureturing-film)
+<a href="https://github.com/the-omega-institute/trureturing-film"><img src="https://raw.githubusercontent.com/the-omega-institute/.github/main/profile/banner.jpg" width="720" alt="TRURETURING — truth is discovered"></a>
 
-We build a Lean 4 library in which questions, computation, checked proofs and open
-boundaries accumulate as reusable knowledge. Each proved result states its exact
-assumptions; each refutation carries a machine-checked witness; each open question is
-marked as open.
+**[trureturing](https://github.com/the-omega-institute/trureturing)** is an open Lean 4
+library that human mathematicians and AI agents build together. It grows only when a
+new result passes the Lean kernel. We see it as a white-box model of knowledge:
+definitions, assumptions, proofs and dependencies that anyone can inspect and build on.
 
-**[→ trureturing](https://github.com/the-omega-institute/trureturing)** ·
+> **Question → explore with AI → check in Lean → keep → feedback from mathematicians → next question**
+
+**[Explore the atlas](https://the-omega-institute.github.io/trureturing-pages/atlas.html)** ·
 [Read the book](https://the-omega-institute.github.io/trureturing-mdbook/) ·
-[Explore the atlas](https://the-omega-institute.github.io/trureturing-pages/atlas.html) ·
 [Vision](https://github.com/the-omega-institute/trureturing/blob/dev/docs/VISION.md) ·
 [Watch the films](https://github.com/the-omega-institute/trureturing-film)
 
-## A community that builds knowledge together
+## Research news
 
-Our goal is an open mathematical community in which human mathematicians and AI agents
-build a shared knowledge base together. Mathematicians bring intuition, experience and
-judgment; agents help explore examples, read the literature, develop arguments and
-formalize proofs. Lean checks the formal claims under explicit definitions and assumptions.
+- **Oct 2026** · Spoke with [SAIR](https://sair.foundation/) about their
+  [Open Math Model initiative](https://terrytao.wordpress.com/2026/09/18/sairs-open-math-model-initiative/).
+  We were glad to find much common ground and look forward to continuing the conversation.
+- **Sep 2026** · Poster accepted at [NeurIPS 2026 MATH-AI](https://mathai-2026.github.io/):
+  *Cross-Engine Admission Contracts for Autonomous Formalization* (H. Ma, W. Zhang).
+  We look forward to presenting it in Atlanta on 12 December.
+  [OpenReview](https://openreview.net/forum?id=xOAZvprLXO)
+- **Sep 2026** · New preprint: *Sub-quorum colorings of graphs* (H. Ma, R. Sahbi, W. Zhang).
+  [arXiv:2609.25128](https://arxiv.org/abs/2609.25128) ·
+  [code](https://github.com/the-omega-institute/subquorum-colorings)
+- **Sep 2026** · New preprint: *A Padovan-automatic description of a nested recurrence*
+  (B. Cloitre, H. Ma, W. Zhang).
+  [arXiv:2609.33421](https://arxiv.org/abs/2609.33421) ·
+  [code](https://github.com/the-omega-institute/a076502-padovan)
+- **Aug 2026** · New preprint: *A Certificate-Producing Cascade for Equational Implication:
+  The SAIR EQT2 Stage 2 Solver* (H. Ma, W. Zhang, M. I. Cázares).
+  [arXiv:2609.00706](https://arxiv.org/abs/2609.00706)
+- **Aug 2026** · Published in *RAIRO – Theoretical Informatics and Applications*:
+  *Canonical Zeckendorf Normalization and sharp iteration depth of the Berstel Adder*
+  (H. Ma, W. Zhang). [doi:10.1051/ita/2026032](https://www.rairo-ita.org/articles/ita/abs/2026/01/ita20260032/ita20260032.html)
+- **Jul 2026** · New preprint: *Mechanism-level routing failure in LLMs over Lean-verified
+  algebraic structures* (M. I. Cázares, W. Zhang, H. Ma).
+  [arXiv:2607.04534](https://arxiv.org/abs/2607.04534)
 
-Each contribution keeps its sources, reasoning and dependencies visible so others can
-review, reuse and extend it. Researchers' feedback sharpens the questions and improves
-the results; each checked result becomes a starting point for the next person or agent.
-Through this continuing exchange, the community grows both the library and its understanding.
+## Open right now
 
-[How the human–agent research loop works](https://the-omega-institute.github.io/trureturing-pages/open-math.html?lang=en)
+The [atlas](https://the-omega-institute.github.io/trureturing-pages/atlas.html) maps 537
+problems from OEIS, Erdős problems and recent papers, each with its sources. Every
+proved result states its assumptions, every refutation carries a checked witness, and
+every open boundary is marked as open. Pick one.
 
 ## By the numbers
 
-*Measured on `trureturing@dev`, 2026-09-27.*
+| **5,752** Lean modules in the frozen ledger | **32,000+** theorems | **537** literature problems | **100+** literature conjectures refuted in Lean |
+|:---:|:---:|:---:|:---:|
 
-| | |
-|---|---|
-| **4,981** | Lean modules in the frozen ledger |
-| **30,000+** | theorem declarations in the Lean source |
-| **411** | problems from the literature (OEIS, Erdős problems, recent papers), each with sources |
-| **71** | conjectures and claims from the literature refuted in Lean |
+<sub>Measured on `trureturing@dev` (`e8e43c4`), 2026-10-03.</sub>
 
-## Publications
+## Bring a question
 
-- H. Ma, W. Zhang.
-  **Cross-Engine Admission Contracts for Autonomous Formalization.**
-  NeurIPS 2026 MATH-AI Workshop, accepted poster ·
-  [OpenReview](https://openreview.net/forum?id=xOAZvprLXO)
-- H. Ma, R. Sahbi, W. Zhang.
-  **Sub-quorum colorings of graphs.**
-  [arXiv:2609.25128](https://arxiv.org/abs/2609.25128), 2026 ·
-  [manuscript, certificates and Lean proofs](https://github.com/the-omega-institute/subquorum-colorings)
-- B. Cloitre, H. Ma, W. Zhang.
-  **A Padovan-automatic description of a nested recurrence.**
-  [arXiv:2609.33421](https://arxiv.org/abs/2609.33421), 2026 ·
-  [manuscript, certificates and Lean proofs](https://github.com/the-omega-institute/a076502-padovan)
-- H. Ma, W. Zhang, M. I. Cázares.
-  **A Certificate-Producing Cascade for Equational Implication: The SAIR EQT2 Stage 2 Solver.**
-  [arXiv:2609.00706](https://arxiv.org/abs/2609.00706), 2026 ·
-  [solver](https://github.com/the-omega-institute/sair-eqt2-stage2-solver)
-- H. Ma, W. Zhang.
-  **Canonical Zeckendorf Normalization and sharp iteration depth of the Berstel Adder.**
-  *RAIRO – Theoretical Informatics and Applications* 60 (2026) 29 ·
-  [doi:10.1051/ita/2026032](https://www.rairo-ita.org/articles/ita/abs/2026/01/ita20260032/ita20260032.html)
-- M. I. Cázares, W. Zhang, H. Ma.
-  **Mechanism-level routing failure in LLMs over Lean-verified algebraic structures.**
-  [arXiv:2607.04534](https://arxiv.org/abs/2607.04534), 2026
-
-## Selected results
-
-- **A Padovan-automatic nested recurrence.** OEIS A076502 has exact floor-offset set
-  `{-1, 0, 1, 2}`, a uniform discrepancy bound and least balance constant 4, with an
-  explicit 26-letter morphic presentation.
-  [Problem](https://the-omega-institute.github.io/trureturing-mdbook/Problems/oeis-a076502-nested-recurrence-floor-refutation.html)
-- **Sahbi Conjecture 6.4, proved.** The sub-quorum chromatic number of the Boolean cube
-  `Q_n` equals `2^(n-1)` for every `n ≥ 2`.
-  [Problem and proof](https://the-omega-institute.github.io/trureturing-mdbook/Problems/sahbi-hypercube-subquorum.html)
-- **Greathouse's formula for OEIS A175406, refuted.** At `n = 1121626023352383` the
-  conjectured `floor((n + 1/2) log 2)` exceeds the true value by one; the Lean proof uses
-  certified logarithm bounds.
-  [Problem](https://the-omega-institute.github.io/trureturing-mdbook/Problems/oeis-a175406-log-two-floor-refutation.html)
-- **A blind spot of local observation.** A Bell state and the classical mixture of `00`
-  and `11` have identical single-qubit marginals; the correlation sector omitted by local
-  descriptions has real dimension `(m² − 1)(n² − 1)`.
-  [Lean](https://github.com/the-omega-institute/trureturing/blob/dev/D5/S3/Quantum/Entanglement/LocalMarginalCorrelationBlindSpot.lean)
-- **Golden-ratio coordinates of Zeckendorf digits.** The deficit
-  `β(a) + β(b) − β(a + b)` takes values only in `{−1, 0, 1}` for all natural inputs.
-  [Lean](https://github.com/the-omega-institute/trureturing/blob/dev/D5/S1/Deficit/DeficitThreeValued.lean)
-
-## Take part
-
-Bring a question that matters to you. In Claude Code or Codex, paste:
+Bring a question, an idea, a model, or an agent. Make one step precise, and give
+someone else a place to start. [Open an issue](https://github.com/the-omega-institute/trureturing/issues),
+read the [contribution guide](https://github.com/the-omega-institute/trureturing/blob/dev/docs/CONTRIBUTING.md),
+or paste this into Claude Code or Codex:
 
 ```text
 Help me explore https://github.com/the-omega-institute/trureturing: use an existing checkout or clone it into a new directory if needed, read AGENTS.md and README.md, then read the relevant SKILL.md under skills/ to investigate a question I care about and find a checked result or a clearly stated open question.
 ```
-
-The [contribution guide](https://github.com/the-omega-institute/trureturing/blob/dev/docs/CONTRIBUTING.md)
-covers forks, checks and pull requests. Contributions in English and Chinese are welcome.
 
 ## Part of [Chrono AI](https://www.chrono-ai.fun/)
