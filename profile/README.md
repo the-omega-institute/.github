@@ -18,6 +18,13 @@ definitions, assumptions, proofs and dependencies that anyone can inspect and bu
 
 ## Research news
 
+- **Oct 2026** · New preprint: *Generation by lazy and invertible cellular automata over the
+  Klein four-group* (E. Alcalá-Arroyo, A. Castillo-Ramirez, H. Ma, W. Zhang).
+  [arXiv:2610.20329](https://arxiv.org/abs/2610.20329) ·
+  [code](https://github.com/the-omega-institute/klein-four-lazy-ca-supplement)
+- **Oct 2026** · New preprint: *On the coincidence of discrete and continuous definitions of
+  Entanglement of Formation* (H. Ma, M. E. Shirokov, W. Zhang).
+  [arXiv:2610.18816](https://arxiv.org/abs/2610.18816)
 - **Oct 2026** · Spoke with [SAIR](https://sair.foundation/) about their
   [Open Math Model initiative](https://terrytao.wordpress.com/2026/09/18/sairs-open-math-model-initiative/).
   We were glad to find much common ground and look forward to continuing the conversation.
