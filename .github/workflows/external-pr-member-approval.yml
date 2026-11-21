@@ -1,0 +1,74 @@
+name: External PR member approval
+
+on:
+  pull_request_target:
+
+permissions:
+  pull-requests: read
+
+concurrency:
+  group: external-pr-member-approval-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  member-approval:
+    name: External PR member approval
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      REVIEWED_HEAD: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - name: Check membership and approval
+        shell: bash
+        run: |
+          pr_endpoint="repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER"
+          pr=$(gh api "$pr_endpoint")
+
+          # Internal automation opens PRs from organization-controlled branches.
+          if jq -e '
+            .author_association == "MEMBER" or .author_association == "OWNER" or
+            (.user.type == "Bot" and .head.repo.owner.id == .base.repo.owner.id)
+          ' <<<"$pr" > /dev/null; then
+            echo "The pull request was opened by a member or organization automation."
+            exit 0
+          fi
+
+          for attempt in {1..21}; do
+            current_head=$(gh api "$pr_endpoint" --jq .head.sha)
+            if [[ $current_head != "$REVIEWED_HEAD" ]]; then
+              echo "::error::The pull request head changed. Check the workflow for the new commit."
+              exit 1
+            fi
+
+            reviews=$(gh api --paginate --slurp "$pr_endpoint/reviews?per_page=100")
+            if jq -e --arg head "$REVIEWED_HEAD" '
+              add
+              | map(select(
+                  .state == "APPROVED" or .state == "CHANGES_REQUESTED" or .state == "DISMISSED"
+                ))
+              | group_by(.user.id)
+              | map(max_by(.id))
+              | any(
+                  .state == "APPROVED"
+                  and .commit_id == $head
+                  and .user.type == "User"
+                  and (.author_association == "MEMBER" or .author_association == "OWNER")
+                )
+            ' <<<"$reviews" > /dev/null; then
+              current_head=$(gh api "$pr_endpoint" --jq .head.sha)
+              if [[ $current_head == "$REVIEWED_HEAD" ]]; then
+                echo "An organization member approved the current commit."
+                exit 0
+              fi
+              exit 1
+            fi
+
+            if (( attempt < 21 )); then
+              sleep 30
+            fi
+          done
+
+          echo "::error::An organization member must approve the current commit. After approval, re-run this check if it has already ended."
+          exit 1
