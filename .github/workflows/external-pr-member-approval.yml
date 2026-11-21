@@ -19,17 +19,30 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
       REVIEWED_HEAD: ${{ github.event.pull_request.head.sha }}
+      MEMBER_IDS: ${{ secrets.EXTERNAL_PR_MEMBER_IDS }}
     steps:
       - name: Check membership and approval
         shell: bash
         run: |
-          # The pull_request_target event comes from the repository receiving the PR.
           if jq -e '
             .pull_request
-            | .author_association == "MEMBER" or .author_association == "OWNER" or
-              (.user.type == "Bot" and .head.repo.owner.id == .base.repo.owner.id)
+            | .user.type == "Bot" and .head.repo.owner.id == .base.repo.owner.id
           ' "$GITHUB_EVENT_PATH" > /dev/null; then
-            echo "The pull request was opened by a member or organization automation."
+            echo "The pull request was opened by organization automation."
+            exit 0
+          fi
+
+          # The Actions token cannot see private organization membership.
+          if ! jq -e 'type == "array" and length > 0 and all(.[]; type == "number")' \
+            <<<"$MEMBER_IDS" > /dev/null; then
+            echo "::error::The organization member roster is missing or invalid."
+            exit 1
+          fi
+
+          if jq -e --argjson members "$MEMBER_IDS" '
+            .pull_request.user.id as $author | $members | index($author) != null
+          ' "$GITHUB_EVENT_PATH" > /dev/null; then
+            echo "The pull request was opened by an organization member."
             exit 0
           fi
 
@@ -43,27 +56,35 @@ jobs:
             fi
 
             reviews=$(gh api --paginate --slurp "$pr_endpoint/reviews?per_page=100")
-            if jq -e --arg head "$REVIEWED_HEAD" '
+            approvers=$(jq -r --arg head "$REVIEWED_HEAD" --argjson members "$MEMBER_IDS" '
               add
               | map(select(
                   .state == "APPROVED" or .state == "CHANGES_REQUESTED" or .state == "DISMISSED"
                 ))
               | group_by(.user.id)
               | map(max_by(.id))
-              | any(
-                  .state == "APPROVED"
-                  and .commit_id == $head
-                  and .user.type == "User"
-                  and (.author_association == "MEMBER" or .author_association == "OWNER")
-                )
-            ' <<<"$reviews" > /dev/null; then
-              current_head=$(gh api "$pr_endpoint" --jq .head.sha)
-              if [[ $current_head == "$REVIEWED_HEAD" ]]; then
-                echo "An organization member approved the current commit."
-                exit 0
+              | .[]
+              | select(.state == "APPROVED" and .commit_id == $head and .user.type == "User")
+              | .user.id as $reviewer
+              | select($members | index($reviewer) != null)
+              | .user.login
+            ' <<<"$reviews")
+            while IFS= read -r reviewer; do
+              if [[ -z $reviewer ]]; then
+                continue
               fi
-              exit 1
-            fi
+              permission=$(gh api "repos/$GITHUB_REPOSITORY/collaborators/$reviewer/permission" --jq .permission)
+              case "$permission" in
+                admin|maintain|write)
+                  current_head=$(gh api "$pr_endpoint" --jq .head.sha)
+                  if [[ $current_head == "$REVIEWED_HEAD" ]]; then
+                    echo "An organization member approved the current commit."
+                    exit 0
+                  fi
+                  exit 1
+                  ;;
+              esac
+            done <<<"$approvers"
 
             if (( attempt < 21 )); then
               sleep 30
