@@ -23,18 +23,18 @@ jobs:
       - name: Check membership and approval
         shell: bash
         run: |
-          pr_endpoint="repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER"
-          pr=$(gh api "$pr_endpoint")
-
-          # Internal automation opens PRs from organization-controlled branches.
+          # The pull_request_target event comes from the repository receiving the PR.
           if jq -e '
-            .author_association == "MEMBER" or .author_association == "OWNER" or
-            (.user.type == "Bot" and .head.repo.owner.id == .base.repo.owner.id)
-          ' <<<"$pr" > /dev/null; then
+            .pull_request
+            | .author_association == "MEMBER" or .author_association == "OWNER" or
+              (.user.type == "Bot" and .head.repo.owner.id == .base.repo.owner.id)
+          ' "$GITHUB_EVENT_PATH" > /dev/null; then
             echo "The pull request was opened by a member or organization automation."
             exit 0
           fi
 
+          echo "Checking for a member review of the external pull request."
+          pr_endpoint="repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER"
           for attempt in {1..21}; do
             current_head=$(gh api "$pr_endpoint" --jq .head.sha)
             if [[ $current_head != "$REVIEWED_HEAD" ]]; then
