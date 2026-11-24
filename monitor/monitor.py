@@ -210,13 +210,14 @@ def sandbox_preflight(root, home, sandbox, environment):
         marker.write_text(uuid.uuid4().hex)
         outside = home.parent / ("monitor-outside-write-check-" + uuid.uuid4().hex)
         script = (
-            "from pathlib import Path\nimport socket\n"
+            "from pathlib import Path\nimport errno, socket\n"
             f"p=Path({str(marker)!r})\nassert len(p.read_text()) == 32\n"
             "try:\n p.write_text('write-check')\n wrote=True\n"
-            "except PermissionError:\n wrote=False\n"
+            "except OSError as e:\n"
+            " assert e.errno in (errno.EACCES, errno.EPERM, errno.EROFS), str(e)\n wrote=False\n"
             f"assert wrote == {sandbox == 'workspace-write'!r}, 'wrong workspace write policy'\n"
             f"try:\n Path({str(outside)!r}).write_text('must-be-denied')\n"
-            "except PermissionError:\n pass\n"
+            "except OSError as e:\n assert e.errno in (errno.EACCES, errno.EPERM, errno.EROFS), str(e)\n"
             "else:\n raise AssertionError('write escaped model workspace')\n"
             "try:\n socket.create_connection(('203.0.113.1', 9), timeout=1).close()\n"
             "except PermissionError:\n pass\n"
@@ -285,6 +286,7 @@ def repair(config, observation, workspace, output, verify_model=False):
         "Do not hide failures by disabling features or weakening checks. Do not treat a new observation time as fresh source data. "
         "If no defensible fix is possible, return no_fix with the precise missing evidence. "
         "If probes are healthy, inspect one representative display/consumer path read-only, return healthy and make no changes. "
+        "For that healthy read-only inspection, do not install dependencies or run build/test commands. "
         "Return the requested JSON with the exact target repository and a concrete explanation.\n" + json.dumps(context)
     )
     result = model(workspace, prompt, workspace / "model-result.json", REPAIR_SCHEMA,

@@ -118,6 +118,13 @@ jobs:
           python3 monitor/monitor.py repair --config "$RUNNER_TEMP/monitor-input/.github/display-monitor.json" \
             --observation "$RUNNER_TEMP/monitor-input/observation.json" \
             --workspace "$RUNNER_TEMP/display-repair" --output "$RUNNER_TEMP/candidate.json"
+      - name: Exercise real repair and independent review on a disposable reader
+        if: inputs.verify_model && steps.repair.outputs.state == 'healthy'
+        env:
+          NYXID_API_KEY: ${{ secrets.model_key }}
+          NYXID_BASE_URL: https://api.nyxid.ai/api/v1/proxy/s/chrono-llm
+          CODEX_MODEL: gpt-6.1-sol
+        run: python3 monitor/acceptance.py
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: steps.repair.outputs.state == 'repaired'
         with:
