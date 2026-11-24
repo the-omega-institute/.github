@@ -1,0 +1,176 @@
+name: Downstream display monitor
+
+on:
+  workflow_call:
+    inputs:
+      monitor_revision:
+        type: string
+        required: true
+      verify_model:
+        type: boolean
+        default: false
+    secrets:
+      model_key:
+        required: true
+      pr_token:
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: display-monitor-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      state: ${{ steps.probe.outputs.state }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: the-omega-institute/.github
+          ref: ${{ inputs.monitor_revision }}
+          path: .monitor-tools
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Install the pinned public browser client
+        run: npm install --prefix "$RUNNER_TEMP/monitor-browser" --ignore-scripts --no-audit --no-fund playwright-core@1.58.2
+      - name: Check a real public reading path
+        env:
+          MONITOR_BROWSER_MODULE: ${{ runner.temp }}/monitor-browser/node_modules/playwright-core
+        run: node .monitor-tools/monitor/browser.cjs .github/display-monitor.json "$RUNNER_TEMP/browser.json"
+      - name: Check public data and exact identities
+        id: probe
+        run: |
+          python3 .monitor-tools/monitor/monitor.py probe --config .github/display-monitor.json \
+            --browser-results "$RUNNER_TEMP/browser.json" --output "$RUNNER_TEMP/observation.json"
+          cat "$RUNNER_TEMP/observation.json" >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain this attempt's public observations and trusted registration
+        run: |
+          mkdir -p "$RUNNER_TEMP/monitor-input/.github"
+          cp .github/display-monitor.json "$RUNNER_TEMP/monitor-input/.github/"
+          cp "$RUNNER_TEMP/observation.json" "$RUNNER_TEMP/monitor-input/"
+      - name: Upload public monitor inputs
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: monitor-input-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/monitor-input/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 2
+
+  repair:
+    needs: inspect
+    if: needs.inspect.outputs.state == 'anomaly' || inputs.verify_model
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    outputs:
+      state: ${{ steps.repair.outputs.state }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: the-omega-institute/.github
+          ref: ${{ inputs.monitor_revision }}
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: monitor-input-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/monitor-input
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Install the exercised Codex CLI
+        run: npm install --global --ignore-scripts @openai/codex@0.171.0
+      - name: Diagnose and repair, without GitHub write credentials
+        id: repair
+        env:
+          NYXID_API_KEY: ${{ secrets.model_key }}
+          NYXID_BASE_URL: https://api.nyxid.ai/api/v1/proxy/s/chrono-llm
+          CODEX_MODEL: gpt-6.1-sol
+        run: |
+          python3 monitor/monitor.py repair --config "$RUNNER_TEMP/monitor-input/.github/display-monitor.json" \
+            --observation "$RUNNER_TEMP/monitor-input/observation.json" \
+            --workspace "$RUNNER_TEMP/display-repair" --output "$RUNNER_TEMP/candidate.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: steps.repair.outputs.state == 'repaired'
+        with:
+          name: monitor-patch-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/candidate.json
+          if-no-files-found: error
+          retention-days: 2
+
+  submit:
+    needs: repair
+    if: needs.repair.outputs.state == 'repaired'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: the-omega-institute/.github
+          ref: ${{ inputs.monitor_revision }}
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: monitor-input-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/monitor-input
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: monitor-patch-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/monitor-patch
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Validate exact scope and open the responsible repository's PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MONITOR_PR_TOKEN: ${{ secrets.pr_token }}
+        run: |
+          python3 monitor/monitor.py publish --config "$RUNNER_TEMP/monitor-input/.github/display-monitor.json" \
+            --candidate "$RUNNER_TEMP/monitor-patch/candidate.json" >> "$GITHUB_STEP_SUMMARY"
+
+  reconcile:
+    needs: [inspect, repair, submit]
+    if: always() && needs.inspect.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+      checks: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          repository: the-omega-institute/.github
+          ref: ${{ inputs.monitor_revision }}
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: monitor-input-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/monitor-input
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Reconcile completed local repair PRs through existing GitHub checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 monitor/monitor.py reconcile --config "$RUNNER_TEMP/monitor-input/.github/display-monitor.json" >> "$GITHUB_STEP_SUMMARY"
