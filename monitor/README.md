@@ -10,10 +10,12 @@ and checks bounded JSON contracts. Healthy runs use no model. A manual
 
 Before every model call, trusted commands prove both read-only and workspace-write
 execution, including rejected writes outside the workspace and rejected outbound
-network access. The pinned Codex 0.171 Linux runtime uses its supported
-`features.use_legacy_landlock` backend because the hosted runner cannot initialize
-the default backend's loopback namespace. The filesystem and network checks fail
-closed; a returned model message alone does not establish execution readiness.
+network access. The repair job installs Ubuntu's distribution `bubblewrap` and
+loads its `bwrap-userns-restrict` AppArmor profile following the
+[Codex Ubuntu setup instructions](https://learn.chatgpt.com/docs/sandboxing).
+This applies only to that disposable monitor runner. The filesystem and network
+checks fail closed; a returned model message alone does not establish execution
+readiness.
 
 For an anomaly, an ephemeral Codex proposes one small patch in the responsible
 registered repository. It receives only the caller's model key. Registered
