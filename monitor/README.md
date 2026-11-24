@@ -6,7 +6,9 @@ public probes, repair targets, permitted paths and verification commands.
 
 An hourly or post-deployment run loads real public pages in an isolated browser
 and checks bounded JSON contracts. Healthy runs use no model. A manual
-`verify_model` run also exercises the existing Omega Live Ops model route.
+`verify_model` run also exercises the existing Omega Live Ops model route, then
+repairs a disposable broken reader through the actual verification and fresh
+review stages. That acceptance fixture never publishes a PR.
 
 Before every model call, trusted commands prove both read-only and workspace-write
 execution, including rejected writes outside the workspace and rejected outbound
