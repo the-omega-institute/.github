@@ -193,6 +193,8 @@ def model(root, prompt, result, schema, read_only=False):
             env=environment, input=prompt)
     value = read(result)
     require(isinstance(value, dict), "invalid model result")
+    diagnostic = {k: str(value[k])[:1500] for k in ("outcome", "target", "summary", "reason", "verdict") if k in value}
+    print("Model result: " + SECRET.sub("[redacted]", json.dumps(diagnostic)), flush=True)
     return value
 
 
