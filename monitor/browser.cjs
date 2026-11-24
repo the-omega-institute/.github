@@ -15,7 +15,8 @@ async function inspect(config) {
         const response = await page.goto(check.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
         if (!response || response.status() !== 200) throw new Error('Reader HTTP status is not 200');
         await page.locator(check.selector || 'body').waitFor({ state: 'visible', timeout: 15000 });
-        await page.waitForFunction(() => document.body.innerText.trim().length >= 80, { timeout: 15000 });
+        await page.waitForFunction(() => document.body.innerText.trim().length >= 80, null, { timeout: 15000 });
+        await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
         if (errors.length) throw new Error(errors.join('; '));
         observations.push({ id: check.id, url: check.url, owner: check.owner, state: 'healthy' });
       } catch (error) {

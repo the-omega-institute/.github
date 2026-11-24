@@ -14,6 +14,8 @@ on:
         required: true
       pr_token:
         required: false
+      github_key:
+        required: false
 
 permissions:
   contents: read
@@ -53,6 +55,8 @@ jobs:
         run: node .monitor-tools/monitor/browser.cjs .github/display-monitor.json "$RUNNER_TEMP/browser.json"
       - name: Check public data and exact identities
         id: probe
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           python3 .monitor-tools/monitor/monitor.py probe --config .github/display-monitor.json \
             --browser-results "$RUNNER_TEMP/browser.json" --output "$RUNNER_TEMP/observation.json"
@@ -73,7 +77,7 @@ jobs:
 
   repair:
     needs: inspect
-    if: needs.inspect.outputs.state == 'anomaly' || inputs.verify_model
+    if: needs.inspect.outputs.state == 'anomaly' || (inputs.verify_model && needs.inspect.outputs.state == 'healthy')
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     outputs:
@@ -143,6 +147,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           MONITOR_PR_TOKEN: ${{ secrets.pr_token }}
+          MONITOR_GITHUB_KEY: ${{ secrets.github_key }}
         run: |
           python3 monitor/monitor.py publish --config "$RUNNER_TEMP/monitor-input/.github/display-monitor.json" \
             --candidate "$RUNNER_TEMP/monitor-patch/candidate.json" >> "$GITHUB_STEP_SUMMARY"
@@ -173,4 +178,5 @@ jobs:
       - name: Reconcile completed local repair PRs through existing GitHub checks
         env:
           GH_TOKEN: ${{ github.token }}
+          MONITOR_GITHUB_KEY: ${{ secrets.github_key }}
         run: python3 monitor/monitor.py reconcile --config "$RUNNER_TEMP/monitor-input/.github/display-monitor.json" >> "$GITHUB_STEP_SUMMARY"

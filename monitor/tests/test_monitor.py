@@ -127,7 +127,7 @@ class MonitorTests(unittest.TestCase):
         self.assertTrue(all(method == "GET" for method, _, _ in api.calls))
 
     def test_replayed_incident_reuses_existing_pr_without_writes(self):
-        branch = "monitor/trureturing-pages-" + "e" * 20
+        branch = "monitor/trureturing-pages-" + "e" * 20 + "-" + BASE[:8]
         existing = {"head": {"ref": branch}, "base": {"ref": "dev"}, "html_url": "existing"}
         api = API(existing=[existing])
         self.assertEqual(m.publish(config(), candidate(), api), existing)
@@ -163,7 +163,7 @@ class MonitorTests(unittest.TestCase):
     def test_cross_repository_submit_requires_explicit_publisher_authorization(self):
         c = candidate(); c.update(target=UPSTREAM, branch='main')
         c['files'] = {'managed/delivery.py': next(iter(c['files'].values()))}
-        with patch.dict(os.environ, {'MONITOR_PR_TOKEN': ''}):
+        with patch.dict(os.environ, {'MONITOR_PR_TOKEN': '', 'MONITOR_GITHUB_KEY': ''}):
             with self.assertRaisesRegex(ValueError, 'configure a GitHub App'):
                 m.publish(config(), c, API())
 
@@ -193,6 +193,25 @@ class MonitorTests(unittest.TestCase):
         self.assertEqual(api.writes[0][2]['sha'],'b'*40)
         pr['user']['login']='human'
         api=ReconcileAPI([{'status':'completed','conclusion':'success'}]);m.reconcile(config(),api);self.assertFalse(api.writes)
+
+    def test_material_sample_checks_declared_links_without_inventing_missing_products(self):
+        now=dt.datetime(2026,11,25,tzinfo=dt.timezone.utc)
+        check={'kind':'materials'}
+        row={'repository_url':'https://github.com/mathesis-papers/example','site_url':'https://papers.trureturing.org/example/','version':1,'reading':{},'visualizations':[]}
+        data=json.dumps({'entries':[row]}).encode()
+        m.check_probe(check,data,'application/json',now,lambda url:self.fail('pending product must not be fetched'))
+        row['reading']={'en':'https://papers.trureturing.org/example/en/'}
+        data=json.dumps({'entries':[row]}).encode()
+        def missing(url):raise OSError('HTTP 404')
+        with self.assertRaisesRegex(OSError,'404'):m.check_probe(check,data,'application/json',now,missing)
+
+    def test_brokered_github_cannot_send_key_to_an_unregistered_repository(self):
+        with patch.dict(os.environ, {'MONITOR_GITHUB_KEY':'test-only-key'}):
+            api=m.GitHub(routes={REPO:{'github_service':'display-pages-github'}})
+            with patch('urllib.request.urlopen') as transport:
+                with self.assertRaisesRegex(ValueError,'unregistered'):
+                    api.call('POST','repos/'+UPSTREAM+'/pulls',{})
+                transport.assert_not_called()
 
 
 if __name__ == "__main__":

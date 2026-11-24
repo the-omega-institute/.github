@@ -116,7 +116,7 @@ def validate_config(config):
     return config
 
 
-def probe(config, output, fetcher=fetch, browser=None):
+def probe(config, output, fetcher=fetch, browser=None, api=None):
     now = dt.datetime.now(dt.timezone.utc)
     observations, failures = [], []
     for check in config["checks"]:
@@ -139,6 +139,15 @@ def probe(config, output, fetcher=fetch, browser=None):
     result = {"schema": SCHEMA, "repository": config["repository"], "observed_at": now.isoformat(),
               "state": "anomaly" if failures else "healthy", "fingerprint": fingerprint,
               "observations": observations}
+    if failures and api:
+        for repo in config["targets"]:
+            pulls = api.call("GET", "repos/" + repo + "/pulls?state=open&per_page=100")
+            require(len(pulls) < 100, "PR coverage limit reached; do not start duplicate repair work")
+            active = next((p for p in pulls if p["head"]["ref"].startswith("monitor/" + config["repository"].split("/")[1] + "-")
+                           and f"Incident: `{fingerprint}`" in p.get("body", "")), None)
+            if active:
+                result.update(state="waiting_pr", repair_pr=active["html_url"])
+                break
     write(output, result)
     github_output(state=result["state"], fingerprint=fingerprint)
     return result
@@ -284,15 +293,26 @@ def repair(config, observation, workspace, output, verify_model=False):
 
 
 class GitHub:
-    def __init__(self, token=None, base=None):
-        self.token = token or os.environ.get("MONITOR_PR_TOKEN") or os.environ.get("GH_TOKEN")
+    def __init__(self, token=None, base=None, routes=None):
+        self.brokered = not token and bool(os.environ.get("MONITOR_GITHUB_KEY"))
+        self.token = token or os.environ.get("MONITOR_GITHUB_KEY") or os.environ.get("MONITOR_PR_TOKEN") or os.environ.get("GH_TOKEN")
         self.base = base or "https://api.github.com"
+        self.routes = routes or {}
         require(self.token, "GitHub publication credential is not configured")
 
     def call(self, method, path, body=None, missing=False):
         require(path.startswith("repos/") and not any(x in path for x in ("..", "\\", "#")), "invalid GitHub route")
+        if self.brokered:
+            _, owner, name, tail = path.split("/", 3)
+            repo = owner + "/" + name
+            require(repo in self.routes and repo not in DENIED, "unregistered GitHub repository")
+            slug = self.routes[repo].get("github_service", "")
+            require(re.fullmatch(r"[a-z0-9-]+", slug), "repository-bound GitHub route is not configured")
+            url = "https://api.nyxid.ai/api/v1/proxy/s/" + slug + "/" + tail
+        else:
+            url = self.base + "/" + path
         data = json.dumps(body).encode() if body is not None else None
-        req = urllib.request.Request(self.base + "/" + path, method=method, data=data,
+        req = urllib.request.Request(url, method=method, data=data,
               headers={"Authorization": "Bearer " + self.token, "User-Agent": "omega-display-monitor",
                        "Accept": "application/vnd.github+json", "Content-Type": "application/json"})
         try:
@@ -337,13 +357,13 @@ def validate_candidate(config, candidate):
 
 def publish(config, candidate, api=None):
     target = validate_candidate(config, candidate)
-    api = api or GitHub()
+    api = api or GitHub(routes=config["targets"])
     repo = candidate["target"]
-    require(api is not None and (repo == config["repository"] or os.environ.get("MONITOR_PR_TOKEN")),
+    require(repo == config["repository"] or os.environ.get("MONITOR_GITHUB_KEY") or os.environ.get("MONITOR_PR_TOKEN"),
             "upstream repair is preserved; configure a GitHub App/fine-grained MONITOR_PR_TOKEN for the registered upstream repositories")
     prefix = "repos/" + repo + "/"
     incident = candidate["fingerprint"]
-    branch = "monitor/" + config["repository"].split("/")[1] + "-" + incident
+    branch = "monitor/" + config["repository"].split("/")[1] + "-" + incident + "-" + candidate["base"][:8]
     pulls = api.call("GET", prefix + "pulls?state=all&head=" + urllib.parse.quote(repo.split('/')[0] + ':' + branch) + "&per_page=100")
     if pulls:
         pr = pulls[0]
@@ -389,14 +409,14 @@ def reconcile(config, api=None):
     repo = config["repository"]
     if not config["targets"][repo].get("auto_merge", False):
         return []
-    api = api or GitHub()
+    api = api or GitHub(routes=config["targets"])
     prefix = "repos/" + repo + "/"
     pulls = api.call("GET", prefix + "pulls?state=open&per_page=100")
     results = []
     for pr in pulls:
         if not pr["head"]["ref"].startswith("monitor/" + repo.split("/")[1] + "-"):
             continue
-        if pr.get("user", {}).get("login") != "github-actions[bot]":
+        if pr.get("user", {}).get("login") != config.get("publisher_login", "github-actions[bot]"):
             continue
         if pr["base"]["ref"] != config["targets"][repo]["branch"] or pr["head"].get("repo", {}).get("full_name") != repo:
             continue
@@ -435,7 +455,8 @@ def main():
     config = validate_config(read(args.config))
     require(not os.environ.get("GITHUB_REPOSITORY") or os.environ["GITHUB_REPOSITORY"] == config["repository"], "foreign caller repository")
     if args.action == "probe":
-        probe(config, args.output, browser=read(args.browser_results) if args.browser_results else None)
+        probe(config, args.output, browser=read(args.browser_results) if args.browser_results else None,
+              api=GitHub(token=os.environ["GH_TOKEN"]) if os.environ.get("GH_TOKEN") else None)
     elif args.action == "repair":
         repair(config, read(args.observation), Path(args.workspace), args.output, args.verify_model)
     elif args.action == "publish":

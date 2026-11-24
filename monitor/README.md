@@ -15,19 +15,31 @@ validates the inventory, base SHA and producing run/attempt before submitting a
 PR. Neither code execution nor candidate verification receives a GitHub write
 credential. The reusable code is held outside the model's writable workspace.
 
-Own-repository repair PRs use the repository token. A later run can merge those
-bot-created PRs only after their producing run and actual GitHub PR checks pass.
+Own-repository repair PRs use the repository token or a configured repository-bound
+NyxID GitHub route. A later run can merge those monitor-created PRs only after
+their producing run and actual GitHub PR checks pass.
 Existing approval or branch requirements remain effective. Upstream patches are
 PRs for their owners to merge; the monitor never merges them.
 
-Cross-repository submission requires `DISPLAY_MONITOR_PR_TOKEN`, a GitHub App
+Cross-repository submission uses `NYXID_MONITOR_GITHUB_KEY` with explicit
+`github_service` registrations. Each service's upstream URL is fixed to one
+GitHub repository. The key allows only those services and the required Git/PR
+operations; upstream merge operations are excluded. Per-agent bindings reuse
+the already encrypted GitHub credential without reading or exporting it. These
+publication keys are independently revocable and never reach model execution.
+The credential's existing GitHub account remains the published PR author; the
+registered `publisher_login` and original run bind local automatic reconciliation.
+Model keys are owned by Omega Live Ops; these GitHub bindings remain with the
+owner of the existing GitHub connection rather than copying that credential.
+
+Alternatively, submission can use `DISPLAY_MONITOR_PR_TOKEN`, a GitHub App
 installation token or fine-grained credential limited to the explicitly
 registered repositories with contents/PR write permissions. It is available
 only in the submission job. The caller's built-in token cannot grant rights in
 another repository. Without this credential, an upstream candidate remains a
 two-day run artifact and the submission reports the missing authorization.
-The monitor never substitutes an organization administrator session or a broad
-personal token. The model secret is `NYXID_MONITOR_KEY`, issued independently
+The monitor never substitutes an organization administrator session or exports a
+broad personal token. The model secret is `NYXID_MONITOR_KEY`, issued independently
 per caller under Omega Live Ops, proxy-only for its existing Chrono LLM service.
 
 Research manuscripts, review and trust decisions, mail, DOI deposits, private
