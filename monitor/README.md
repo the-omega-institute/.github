@@ -8,6 +8,13 @@ An hourly or post-deployment run loads real public pages in an isolated browser
 and checks bounded JSON contracts. Healthy runs use no model. A manual
 `verify_model` run also exercises the existing Omega Live Ops model route.
 
+Before every model call, trusted commands prove both read-only and workspace-write
+execution, including rejected writes outside the workspace and rejected outbound
+network access. The pinned Codex 0.171 Linux runtime uses its supported
+`features.use_legacy_landlock` backend because the hosted runner cannot initialize
+the default backend's loopback namespace. The filesystem and network checks fail
+closed; a returned model message alone does not establish execution readiness.
+
 For an anomaly, an ephemeral Codex proposes one small patch in the responsible
 registered repository. It receives only the caller's model key. Registered
 commands and a fresh read-only Codex review must pass. A separate trusted job

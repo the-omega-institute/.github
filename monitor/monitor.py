@@ -182,11 +182,7 @@ def model(root, prompt, result, schema, read_only=False):
         + "model = " + json.dumps(selected) + "\n"
         + '[model_providers.nyxid]\nname = "nyxid"\nwire_api = "responses"\n'
         + 'base_url = "' + base + '"\nenv_key = "NYXID_API_KEY"\n'
-        + '[sandbox_workspace_write]\nexclude_slash_tmp = true\nexclude_tmpdir_env_var = true\n'
-        # Codex 0.171's default Linux network namespace cannot initialize loopback
-        # on the hosted runner. The supported Landlock backend retains filesystem
-        # restrictions and seccomp network denial without that namespace.
-        + ('[features]\nuse_legacy_landlock = true\n' if sys.platform == "linux" else ''))
+        + '[sandbox_workspace_write]\nexclude_slash_tmp = true\nexclude_tmpdir_env_var = true\n')
     schema_path = home / "result-schema.json"
     write(schema_path, schema)
     # A restricted environment: no GitHub credential or local operator configuration.
