@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import tempfile
 import unittest
+import sys
 from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location("monitor", Path(__file__).parents[1] / "monitor.py")
@@ -149,8 +150,17 @@ class MonitorTests(unittest.TestCase):
                 self.assertIn("--ephemeral", args)
                 self.assertEqual(args[args.index("--sandbox") + 1], "read-only")
                 result.write_text('{"verdict":"PASS","reason":"checked"}')
-            with patch.object(m, "command", side_effect=run):
+            with patch.object(m, "command", side_effect=run), patch.object(m, "sandbox_preflight") as preflight:
                 self.assertEqual(m.model(Path(d), "check", result, m.REVIEW_SCHEMA, True)["verdict"], "PASS")
+                self.assertEqual([call.args[2] for call in preflight.call_args_list], ["read-only", "workspace-write"])
+
+    def test_failed_sandbox_preflight_prevents_model_invocation(self):
+        with tempfile.TemporaryDirectory() as d, patch.dict(os.environ, {"RUNNER_TEMP": d, "NYXID_API_KEY": "model-test", "NYXID_BASE_URL": "https://api.nyxid.ai/api/v1/proxy/s/chrono-llm"}):
+            with patch.object(m, 'sandbox_preflight', side_effect=ValueError('sandbox execution failed')), \
+                 patch.object(m, 'command') as command:
+                with self.assertRaisesRegex(ValueError, 'sandbox execution failed'):
+                    m.model(Path(d), 'check', Path(d) / 'out.json', m.REVIEW_SCHEMA, True)
+                command.assert_not_called()
 
     def test_new_local_candidate_creates_exact_tree_branch_and_pr(self):
         api = API()
@@ -174,6 +184,59 @@ class MonitorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d, patch.object(m, 'clone', return_value=BASE), patch.object(m, 'scoped_files', return_value={}), patch.object(m, 'model', return_value={'outcome':'healthy','reason':'ignore failed probe'}):
             with self.assertRaisesRegex(ValueError, 'no safe repair'):
                 m.repair(config(), observation, Path(d), Path(d)/'candidate')
+
+    def test_repair_verifies_and_independently_reviews_the_exact_responsible_patch(self):
+        for responsible in (REPO, UPSTREAM):
+            with self.subTest(responsible=responsible), tempfile.TemporaryDirectory() as d:
+                c = config()
+                name = 'site/main.js' if responsible == REPO else 'managed/delivery.py'
+                c['targets'][responsible]['verify'] = [[sys.executable, '-c',
+                    'from pathlib import Path; assert Path(' + repr(name) + ').read_text() == "value = 2\\n"']]
+                observation = {'repository': REPO, 'schema': m.SCHEMA, 'state': 'anomaly', 'fingerprint': 'e'*20}
+                roots, bases, reviews = {}, {}, []
+                def clone(repo, branch, root):
+                    root.mkdir()
+                    path = root / ('site/main.js' if repo == REPO else 'managed/delivery.py')
+                    path.parent.mkdir(); path.write_text('value = 1\n')
+                    m.command(['git', 'init', '-q'], root)
+                    m.command(['git', 'add', '.'], root)
+                    m.command(['git', '-c', 'user.name=Test', '-c', 'user.email=test@example.org',
+                               'commit', '-qm', 'fixture'], root)
+                    roots[repo] = root
+                    bases[repo] = m.command(['git', 'rev-parse', 'HEAD'], root).strip()
+                    return bases[repo]
+                def model(root, prompt, result, schema, read_only=False):
+                    reviews.append(read_only)
+                    if read_only:
+                        self.assertEqual((roots[responsible] / name).read_text(), 'value = 2\n')
+                        return {'verdict': 'PASS', 'reason': 'The precise registered fix is verified.'}
+                    (roots[responsible] / name).write_text('value = 2\n')
+                    return {'outcome': 'repaired', 'target': responsible, 'summary': 'Restore display binding', 'reason': 'Correct cause'}
+                output = Path(d).resolve() / 'candidate.json'
+                with patch.object(m, 'clone', side_effect=clone), patch.object(m, 'model', side_effect=model):
+                    m.repair(c, observation, Path(d).resolve() / 'workspace', output)
+                candidate = m.read(output)
+                self.assertEqual(reviews, [False, True])
+                self.assertEqual(candidate['target'], responsible)
+                self.assertEqual(candidate['base'], bases[responsible])
+                self.assertEqual(list(candidate['files']), [name])
+                m.validate_candidate(c, candidate)
+
+    def test_healthy_model_verification_cannot_emit_a_patch_or_skip_the_contract(self):
+        observation = {'repository': REPO, 'schema': m.SCHEMA, 'state': 'healthy'}
+        for outcome, files in [('healthy', {}), ('no_fix', {}), ('healthy', {'site/main.js': {}})]:
+            with self.subTest(outcome=outcome, files=files), tempfile.TemporaryDirectory() as d:
+                output = Path(d) / 'candidate.json'
+                with patch.object(m, 'clone', return_value=BASE), patch.object(m, 'scoped_files', return_value=files), \
+                     patch.object(m, 'model', return_value={'outcome': outcome}) as model:
+                    if outcome == 'healthy' and not files:
+                        m.repair(config(), observation, Path(d) / 'workspace', output, True)
+                        self.assertTrue(m.read(output)['model_verified'])
+                    else:
+                        with self.assertRaisesRegex(ValueError, 'invalid healthy diagnosis'):
+                            m.repair(config(), observation, Path(d) / 'workspace', output, True)
+                        self.assertFalse(output.exists())
+                    self.assertTrue(model.call_args.kwargs['read_only'])
 
     def test_local_reconcile_waits_for_real_checks_and_does_not_merge_human_prs(self):
         pr = {'number':5,'html_url':'pr','head':{'ref':'monitor/trureturing-pages-eee','sha':'b'*40,'repo':{'full_name':REPO}},
