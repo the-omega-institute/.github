@@ -98,6 +98,14 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '22'
+      - name: Prepare the distribution sandbox helper and its user-namespace profile
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends bubblewrap apparmor-profiles apparmor-utils
+          if [ ! -f /etc/apparmor.d/bwrap-userns-restrict ]; then
+            sudo install -m 0644 /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /etc/apparmor.d/bwrap-userns-restrict
+          fi
+          sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict
       - name: Install the exercised Codex CLI
         run: npm install --global --ignore-scripts @openai/codex@0.171.0
       - name: Diagnose and repair, without GitHub write credentials
@@ -110,6 +118,13 @@ jobs:
           python3 monitor/monitor.py repair --config "$RUNNER_TEMP/monitor-input/.github/display-monitor.json" \
             --observation "$RUNNER_TEMP/monitor-input/observation.json" \
             --workspace "$RUNNER_TEMP/display-repair" --output "$RUNNER_TEMP/candidate.json"
+      - name: Exercise real repair and independent review on a disposable reader
+        if: inputs.verify_model && steps.repair.outputs.state == 'healthy'
+        env:
+          NYXID_API_KEY: ${{ secrets.model_key }}
+          NYXID_BASE_URL: https://api.nyxid.ai/api/v1/proxy/s/chrono-llm
+          CODEX_MODEL: gpt-6.1-sol
+        run: python3 monitor/acceptance.py
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: steps.repair.outputs.state == 'repaired'
         with:

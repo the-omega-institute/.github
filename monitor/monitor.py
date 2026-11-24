@@ -12,6 +12,7 @@ from pathlib import Path, PurePosixPath
 import re
 import subprocess
 import sys
+import tempfile
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -180,20 +181,52 @@ def model(root, prompt, result, schema, read_only=False):
         'approval_policy = "never"\nmodel_provider = "nyxid"\n'
         + "model = " + json.dumps(selected) + "\n"
         + '[model_providers.nyxid]\nname = "nyxid"\nwire_api = "responses"\n'
-        + 'base_url = "' + base + '"\nenv_key = "NYXID_API_KEY"\n')
+        + 'base_url = "' + base + '"\nenv_key = "NYXID_API_KEY"\n'
+        + '[sandbox_workspace_write]\nexclude_slash_tmp = true\nexclude_tmpdir_env_var = true\n')
     schema_path = home / "result-schema.json"
     write(schema_path, schema)
     # A restricted environment: no GitHub credential or local operator configuration.
     environment = {key: value for key, value in os.environ.items()
                    if key in ("PATH", "HOME", "TMPDIR", "RUNNER_TEMP", "NYXID_API_KEY", "LANG", "CI")}
     environment["CODEX_HOME"] = str(home)
+    sandbox = "read-only" if read_only else "workspace-write"
+    for mode in ("read-only", "workspace-write"):
+        sandbox_preflight(root, home, mode, environment)
     command(["codex", "exec", "--ephemeral", "--skip-git-repo-check", "--sandbox",
-             "read-only" if read_only else "workspace-write", "--output-schema", str(schema_path),
+             sandbox, "--output-schema", str(schema_path),
              "--output-last-message", str(result), "-"], root, timeout=480,
             env=environment, input=prompt)
     value = read(result)
     require(isinstance(value, dict), "invalid model result")
+    diagnostic = {k: str(value[k])[:1500] for k in ("outcome", "target", "summary", "reason", "verdict") if k in value}
+    print("Model result: " + SECRET.sub("[redacted]", json.dumps(diagnostic)), flush=True)
     return value
+
+
+def sandbox_preflight(root, home, sandbox, environment):
+    """Prove actual tool execution and filesystem/network fencing before a model call."""
+    with tempfile.TemporaryDirectory(prefix=".monitor-preflight-", dir=root) as temp:
+        marker = Path(temp) / "read-check"
+        marker.write_text(uuid.uuid4().hex)
+        outside = home.parent / ("monitor-outside-write-check-" + uuid.uuid4().hex)
+        script = (
+            "from pathlib import Path\nimport errno, socket\n"
+            f"p=Path({str(marker)!r})\nassert len(p.read_text()) == 32\n"
+            "try:\n p.write_text('write-check')\n wrote=True\n"
+            "except OSError as e:\n"
+            " assert e.errno in (errno.EACCES, errno.EPERM, errno.EROFS), str(e)\n wrote=False\n"
+            f"assert wrote == {sandbox == 'workspace-write'!r}, 'wrong workspace write policy'\n"
+            f"try:\n Path({str(outside)!r}).write_text('must-be-denied')\n"
+            "except OSError as e:\n assert e.errno in (errno.EACCES, errno.EPERM, errno.EROFS), str(e)\n"
+            "else:\n raise AssertionError('write escaped model workspace')\n"
+            "try:\n socket.create_connection(('203.0.113.1', 9), timeout=1).close()\n"
+            "except PermissionError:\n pass\n"
+            "else:\n raise AssertionError('network access was not denied')\n"
+            "print('Sandbox command execution and filesystem/network fences verified')\n"
+        )
+        command(["codex", "sandbox", "-c", 'sandbox_mode="' + sandbox + '"',
+                 "--", "python3", "-c", script], root, timeout=30, env=environment)
+    print("Sandbox preflight passed: " + sandbox, flush=True)
 
 
 def scoped_files(root, base, target):
@@ -253,6 +286,7 @@ def repair(config, observation, workspace, output, verify_model=False):
         "Do not hide failures by disabling features or weakening checks. Do not treat a new observation time as fresh source data. "
         "If no defensible fix is possible, return no_fix with the precise missing evidence. "
         "If probes are healthy, inspect one representative display/consumer path read-only, return healthy and make no changes. "
+        "For that healthy read-only inspection, do not install dependencies or run build/test commands. "
         "Return the requested JSON with the exact target repository and a concrete explanation.\n" + json.dumps(context)
     )
     result = model(workspace, prompt, workspace / "model-result.json", REPAIR_SCHEMA,

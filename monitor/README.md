@@ -6,7 +6,18 @@ public probes, repair targets, permitted paths and verification commands.
 
 An hourly or post-deployment run loads real public pages in an isolated browser
 and checks bounded JSON contracts. Healthy runs use no model. A manual
-`verify_model` run also exercises the existing Omega Live Ops model route.
+`verify_model` run also exercises the existing Omega Live Ops model route, then
+repairs a disposable broken reader through the actual verification and fresh
+review stages. That acceptance fixture never publishes a PR.
+
+Before every model call, trusted commands prove both read-only and workspace-write
+execution, including rejected writes outside the workspace and rejected outbound
+network access. The repair job installs Ubuntu's distribution `bubblewrap` and
+loads its `bwrap-userns-restrict` AppArmor profile following the
+[Codex Ubuntu setup instructions](https://learn.chatgpt.com/docs/sandboxing).
+This applies only to that disposable monitor runner. The filesystem and network
+checks fail closed; a returned model message alone does not establish execution
+readiness.
 
 For an anomaly, an ephemeral Codex proposes one small patch in the responsible
 registered repository. It receives only the caller's model key. Registered
