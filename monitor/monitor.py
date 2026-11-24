@@ -288,6 +288,7 @@ def repair(config, observation, workspace, output, verify_model=False):
                  "fingerprint": observation["fingerprint"], "files": changes[repo],
                  "summary": str(result["summary"])[:1500], "review": review,
                  "run_id": os.environ["GITHUB_RUN_ID"], "attempt": os.environ["GITHUB_RUN_ATTEMPT"]}
+    require(not SECRET.search(json.dumps(candidate)), "credential-like model report refused")
     write(output, candidate)
     github_output(state="repaired", target=repo)
 
@@ -333,6 +334,7 @@ def event_line(target):
 
 
 def validate_candidate(config, candidate):
+    require(not SECRET.search(json.dumps(candidate)), "credential-like candidate metadata refused")
     require(candidate["schema"] == SCHEMA and candidate["state"] == "repaired", "invalid repair candidate")
     require(candidate["origin"] == config["repository"], "foreign repair origin")
     repo = candidate["target"]

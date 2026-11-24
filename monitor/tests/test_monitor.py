@@ -117,6 +117,8 @@ class MonitorTests(unittest.TestCase):
             with self.assertRaises(ValueError): m.validate_candidate(config(), c)
         c = candidate(); c["files"]["site/main.js"]["mode"] = "120000"
         with self.assertRaises(ValueError): m.validate_candidate(config(), c)
+        c = candidate(); c['summary'] = 'nyxid_ag_' + 'x' * 40
+        with self.assertRaises(ValueError): m.validate_candidate(config(), c)
         c = candidate(); c["files"]["site/main.js"]["content"] = base64.b64encode(b"ghp_" + b"a" * 30).decode()
         with self.assertRaises(ValueError): m.validate_candidate(config(), c)
 
