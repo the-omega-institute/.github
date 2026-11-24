@@ -395,7 +395,7 @@ def publish(config, candidate, api=None):
         api.call("POST", prefix + "git/refs", {"ref": "refs/heads/" + branch, "sha": new["sha"]})
         head = new["sha"]
     body = (candidate["summary"] + "\n\nOrigin: " + config["repository"]
-            + f"\nIncident: `{incident}`\nChecked base: `{candidate['base']}`\n"
+            + f"\nIncident: `{incident}`\nChecked base: `{candidate['base']}`\nCandidate head: `{head}`\n"
             + "Validation: registered commands completed and an independent read-only review returned PASS.\n"
             + f"Producer: https://github.com/{config['repository']}/actions/runs/{candidate['run_id']}/attempts/{candidate['attempt']}\n\n"
             + event_line("self"))
@@ -429,6 +429,10 @@ def reconcile(config, api=None):
         if run.get("status") != "completed" or run.get("conclusion") != "success" or run.get("path") != ".github/workflows/display-monitor.yml":
             continue
         head = pr["head"]["sha"]
+        bound_head = re.search(r"Candidate head: `([0-9a-f]{40})`", pr.get("body", ""))
+        if not bound_head or bound_head[1] != head:
+            results.append({"state": "candidate_changed_requires_review", "url": pr["html_url"]})
+            continue
         checks = api.call("GET", prefix + "commits/" + head + "/check-runs?per_page=100")["check_runs"]
         statuses = api.call("GET", prefix + "commits/" + head + "/status")
         ready = bool(checks) and all(c["status"] == "completed" and c["conclusion"] in ("success", "skipped", "neutral") for c in checks)

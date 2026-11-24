@@ -178,7 +178,7 @@ class MonitorTests(unittest.TestCase):
     def test_local_reconcile_waits_for_real_checks_and_does_not_merge_human_prs(self):
         pr = {'number':5,'html_url':'pr','head':{'ref':'monitor/trureturing-pages-eee','sha':'b'*40,'repo':{'full_name':REPO}},
               'base':{'ref':'dev'},'user':{'login':'github-actions[bot]'},
-              'body':f'Producer: https://github.com/{REPO}/actions/runs/123/attempts/2'}
+              'body':f'Producer: https://github.com/{REPO}/actions/runs/123/attempts/2\nCandidate head: `'+ 'b'*40+'`'}
         class ReconcileAPI:
             def __init__(self, checks): self.checks=checks; self.writes=[]
             def call(self, method, path, body=None):
@@ -193,6 +193,9 @@ class MonitorTests(unittest.TestCase):
             api=ReconcileAPI(checks);m.reconcile(config(),api);self.assertFalse(api.writes)
         api=ReconcileAPI([{'status':'completed','conclusion':'success'}]);m.reconcile(config(),api)
         self.assertEqual(api.writes[0][2]['sha'],'b'*40)
+        pr['head']['sha']='d'*40
+        api=ReconcileAPI([{'status':'completed','conclusion':'success'}]);m.reconcile(config(),api);self.assertFalse(api.writes)
+        pr['head']['sha']='b'*40
         pr['user']['login']='human'
         api=ReconcileAPI([{'status':'completed','conclusion':'success'}]);m.reconcile(config(),api);self.assertFalse(api.writes)
 
