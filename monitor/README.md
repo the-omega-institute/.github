@@ -10,6 +10,29 @@ and checks bounded JSON contracts. Healthy runs use no model. A manual
 repairs a disposable broken reader through the actual verification and fresh
 review stages. That acceptance fixture never publishes a PR.
 
+Healthy wake-ups do not use the model. Model work reserves its attempt in the
+public observation artifact before the repair job starts. That artifact carries
+the prior serialized run's history: at most two sessions per UTC day, and at most
+one session for the same failed-probe fingerprint in seven days, across source
+updates. Manual model acceptance shares both limits. Failed/no-fix/timed-out
+attempts still consume their reservation. Re-running a job cannot reuse its
+original reservation. Missing, corrupt or expired history closes model admission
+and leaves public inspection available. A healthy legacy observation can seed
+the initial rollout. Reservation artifacts last fourteen days; patch artifacts
+still expire after two days.
+
+Every Codex HTTP request passes through a trusted local gateway outside its
+writable workspace. Repair, independent review and disposable acceptance share
+one locked request ledger per job: twelve upstream requests, 128 KiB per request,
+512 KiB cumulative request bytes, and 4,096 output tokens per request (including
+reasoning within the Responses output limit). The gateway fixes the model,
+disallows server-side conversation accumulation and hosted billable tools, and
+never retries an uncertain response. Codex receives a disposable loopback token;
+the actual NyxID model key stays in the gateway. Multi-agent execution and client
+request/stream retries are disabled. Model invocations remain ephemeral and have
+the existing eight-minute timeout. These are usage bounds, not a dollar cap or a
+statement that the model service is free; pricing remains with the provider.
+
 Before every model call, trusted commands prove both read-only and workspace-write
 execution, including rejected writes outside the workspace and rejected outbound
 network access. The repair job installs Ubuntu's distribution `bubblewrap` and
@@ -61,7 +84,7 @@ Unsupported scientific/source changes retain their actual missing prerequisite
 rather than fabricating a code fix or starting another research task.
 
 The only durable incident/repair records are the normal PR and its GitHub run.
-Run artifacts expire after two days. A stable probe-set fingerprint deduplicates
+Patch artifacts expire after two days. A stable probe-set fingerprint deduplicates
 the same incident. Published bytes, actual workflow completion and served-page
 observations remain different evidence; a model PASS is not a deployment receipt.
 
