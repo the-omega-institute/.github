@@ -6,6 +6,7 @@ import argparse
 import base64
 import datetime as dt
 import hashlib
+import io
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -17,6 +18,9 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
+import zipfile
+
+from monitor_budget import RequestBudget, gateway, reserve, validate_reservation
 
 SCHEMA = "omega.display-monitor.v1"
 DENIED = {"the-omega-institute/trureturing", "the-omega-institute/trureturing-requests"}
@@ -117,7 +121,7 @@ def validate_config(config):
     return config
 
 
-def probe(config, output, fetcher=fetch, browser=None, api=None):
+def probe(config, output, fetcher=fetch, browser=None, api=None, verify_model=False, model_enabled=True):
     now = dt.datetime.now(dt.timezone.utc)
     observations, failures = [], []
     for check in config["checks"]:
@@ -149,9 +153,59 @@ def probe(config, output, fetcher=fetch, browser=None, api=None):
             if active:
                 result.update(state="waiting_pr", repair_pr=active["html_url"])
                 break
+    if api and os.environ.get('GITHUB_RUN_ID'):
+        try:
+            previous = model_history(api, config['repository'])
+            result = reserve(result, previous, os.environ['GITHUB_RUN_ID'], os.environ['GITHUB_RUN_ATTEMPT'],
+                             requested=model_enabled and (result['state']=='anomaly' or (verify_model and result['state']=='healthy')))
+            if not model_enabled:
+                result['model_budget_reason'] = 'model work disabled by caller; public probes continue'
+        except (ValueError, RuntimeError, OSError, KeyError, TypeError, subprocess.SubprocessError) as error:
+            result.update(model_allowed=False, model_budget_error=str(error)[:300])
     write(output, result)
-    github_output(state=result["state"], fingerprint=fingerprint)
+    github_output(state=result["state"], fingerprint=fingerprint,
+                  model_allowed=str(result.get('model_allowed', False)).lower())
     return result
+
+
+def model_history(api, repo):
+    """Read the prior serialized run's reservation, including failed repairs.
+
+    A missing/expired artifact fails closed. Healthy legacy observations can
+    seed rollout, but failed observations cannot erase unknown prior attempts.
+    """
+    prefix = 'repos/' + repo + '/actions/'
+    current, attempt = os.environ['GITHUB_RUN_ID'], int(os.environ['GITHUB_RUN_ATTEMPT'])
+    runs = api.call('GET', prefix + 'workflows/display-monitor.yml/runs?per_page=20')['workflow_runs']
+    if attempt > 1:
+        runs.insert(0, {'id': int(current), 'run_attempt': attempt-1})
+    for run in runs:
+        if str(run['id']) == current and run.get('run_attempt', 1) >= attempt:
+            continue
+        if run.get('status') in ('queued', 'in_progress', 'pending', 'waiting', 'requested'):
+            continue
+        assets = api.call('GET', prefix + 'runs/' + str(run['id']) + '/artifacts?per_page=100')['artifacts']
+        names = {a['name']:a for a in assets}
+        pattern = r'monitor-input-' + str(run['id']) + r'-([1-9][0-9]*)'
+        attempts = [(int(match[1]), name) for name in names
+                    if (match := re.fullmatch(pattern, name))
+                    and int(match[1]) <= run.get('run_attempt', 1)]
+        if not attempts:
+            jobs = api.call('GET', prefix + 'runs/' + str(run['id']) + '/jobs?per_page=100')['jobs']
+            require(not any(j['name'].endswith('/ repair') and j['conclusion']!='skipped' for j in jobs),
+                    'Prior model reservation artifact is missing')
+            continue
+        _, name = max(attempts)
+        require(not names[name].get('expired'), 'Prior model reservation artifact expired')
+        previous = api.observation(names[name]['id'])
+        require(previous['repository']==repo and previous['schema']==SCHEMA, 'Foreign model history')
+        if 'model_budget_error' in previous:
+            raise ValueError('Prior model budget needs reconciliation; automatic model work remains closed')
+        if 'model_budget' in previous:
+            return previous['model_budget']
+        require(previous['state']=='healthy', 'Legacy anomaly has no trustworthy model reservation')
+        return {'schema':'display-monitor-budget.v1', 'reservations':[]}
+    raise ValueError('No complete model reservation history; automatic model work remains closed')
 
 
 def github_output(**values):
@@ -174,28 +228,33 @@ def model(root, prompt, result, schema, read_only=False):
     base = os.environ.get("NYXID_BASE_URL", "")
     require(base == "https://api.nyxid.ai/api/v1/proxy/s/chrono-llm", "unexpected model route")
     selected = os.environ.get("CODEX_MODEL", "gpt-6.1-sol")
-    require(re.fullmatch(r"[A-Za-z0-9._-]+", selected), "invalid model name")
+    require(selected == 'gpt-6.1-sol', 'monitor model is fixed to gpt-6.1-sol')
     home = Path(os.environ["RUNNER_TEMP"]) / ("monitor-codex-" + uuid.uuid4().hex)
     home.mkdir(mode=0o700)
-    (home / "config.toml").write_text(
-        'approval_policy = "never"\nmodel_provider = "nyxid"\n'
-        + "model = " + json.dumps(selected) + "\n"
-        + '[model_providers.nyxid]\nname = "nyxid"\nwire_api = "responses"\n'
-        + 'base_url = "' + base + '"\nenv_key = "NYXID_API_KEY"\n'
-        + '[sandbox_workspace_write]\nexclude_slash_tmp = true\nexclude_tmpdir_env_var = true\n')
+    environment = {key: value for key, value in os.environ.items()
+                   if key in ("PATH", "HOME", "TMPDIR", "RUNNER_TEMP", "LANG", "CI")}
+    environment["CODEX_HOME"] = str(home)
     schema_path = home / "result-schema.json"
     write(schema_path, schema)
-    # A restricted environment: no GitHub credential or local operator configuration.
-    environment = {key: value for key, value in os.environ.items()
-                   if key in ("PATH", "HOME", "TMPDIR", "RUNNER_TEMP", "NYXID_API_KEY", "LANG", "CI")}
-    environment["CODEX_HOME"] = str(home)
     sandbox = "read-only" if read_only else "workspace-write"
-    for mode in ("read-only", "workspace-write"):
-        sandbox_preflight(root, home, mode, environment)
-    command(["codex", "exec", "--ephemeral", "--skip-git-repo-check", "--sandbox",
-             sandbox, "--output-schema", str(schema_path),
-             "--output-last-message", str(result), "-"], root, timeout=480,
-            env=environment, input=prompt)
+    budget = RequestBudget(Path(os.environ['RUNNER_TEMP']) / 'monitor-request-budget.json')
+    with gateway(budget, os.environ['NYXID_API_KEY'], selected) as (local_base, local_token):
+        environment['MONITOR_LOCAL_TOKEN'] = local_token
+        (home / "config.toml").write_text(
+        'approval_policy = "never"\nmodel_provider = "nyxid"\n'
+        + "model = " + json.dumps(selected) + "\n"
+        + 'model_reasoning_effort = "low"\n'
+        + '[features]\nmulti_agent = false\n'
+        + '[model_providers.nyxid]\nname = "nyxid"\nwire_api = "responses"\n'
+        + 'base_url = "' + local_base + '"\nenv_key = "MONITOR_LOCAL_TOKEN"\n'
+        + 'request_max_retries = 0\nstream_max_retries = 0\n'
+        + '[sandbox_workspace_write]\nexclude_slash_tmp = true\nexclude_tmpdir_env_var = true\n')
+        for mode in ("read-only", "workspace-write"):
+            sandbox_preflight(root, home, mode, environment)
+        command(["codex", "exec", "--ephemeral", "--skip-git-repo-check", "--sandbox",
+                 sandbox, "--output-schema", str(schema_path),
+                 "--output-last-message", str(result), "-"], root, timeout=480,
+                env=environment, input=prompt)
     value = read(result)
     require(isinstance(value, dict), "invalid model result")
     diagnostic = {k: str(value[k])[:1500] for k in ("outcome", "target", "summary", "reason", "verdict") if k in value}
@@ -334,6 +393,16 @@ class GitHub:
         self.base = base or "https://api.github.com"
         self.routes = routes or {}
         require(self.token, "GitHub publication credential is not configured")
+
+    def observation(self, artifact_id):
+        require(not self.brokered, 'Reservation history uses the read-only Actions token')
+        path = f'repos/{os.environ["GITHUB_REPOSITORY"]}/actions/artifacts/{int(artifact_id)}/zip'
+        result = subprocess.run(['gh', 'api', path], capture_output=True, timeout=30)
+        require(result.returncode==0 and len(result.stdout)<=MAX_BYTES, 'Cannot read model reservation artifact')
+        with zipfile.ZipFile(io.BytesIO(result.stdout)) as archive:
+            info = archive.getinfo('observation.json')
+            require(info.file_size<=MAX_BYTES, 'Model history observation is oversized')
+            return json.loads(archive.read(info))
 
     def call(self, method, path, body=None, missing=False):
         require(path.startswith("repos/") and not any(x in path for x in ("..", "\\", "#")), "invalid GitHub route")
@@ -496,9 +565,13 @@ def main():
     require(not os.environ.get("GITHUB_REPOSITORY") or os.environ["GITHUB_REPOSITORY"] == config["repository"], "foreign caller repository")
     if args.action == "probe":
         probe(config, args.output, browser=read(args.browser_results) if args.browser_results else None,
-              api=GitHub(token=os.environ["GH_TOKEN"]) if os.environ.get("GH_TOKEN") else None)
+              api=GitHub(token=os.environ["GH_TOKEN"]) if os.environ.get("GH_TOKEN") else None,
+              verify_model=args.verify_model or os.environ.get('MONITOR_VERIFY_MODEL')=='true',
+              model_enabled=os.environ.get('MONITOR_MODEL_ENABLED')!='false')
     elif args.action == "repair":
-        repair(config, read(args.observation), Path(args.workspace), args.output, args.verify_model)
+        observation = read(args.observation)
+        validate_reservation(observation, os.environ['GITHUB_RUN_ID'], os.environ['GITHUB_RUN_ATTEMPT'])
+        repair(config, observation, Path(args.workspace), args.output, args.verify_model)
     elif args.action == "publish":
         publish(config, read(args.candidate))
     elif args.action == "reconcile":

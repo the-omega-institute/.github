@@ -10,6 +10,7 @@ import unittest
 import sys
 from unittest.mock import patch
 
+sys.path.insert(0, str(Path(__file__).parents[1]))
 spec = importlib.util.spec_from_file_location("monitor", Path(__file__).parents[1] / "monitor.py")
 m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)
@@ -147,6 +148,8 @@ class MonitorTests(unittest.TestCase):
             result = Path(d) / "out.json"
             def run(args, cwd, timeout, env, input):
                 self.assertNotIn("GH_TOKEN", env); self.assertNotIn("MONITOR_GITHUB_KEY", env)
+                self.assertNotIn('NYXID_API_KEY', env)
+                self.assertIn('MONITOR_LOCAL_TOKEN', env)
                 self.assertIn("--ephemeral", args)
                 self.assertEqual(args[args.index("--sandbox") + 1], "read-only")
                 result.write_text('{"verdict":"PASS","reason":"checked"}')

@@ -9,6 +9,9 @@ on:
       verify_model:
         type: boolean
         default: false
+      model_enabled:
+        type: boolean
+        default: true
     secrets:
       model_key:
         required: true
@@ -19,6 +22,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: display-monitor-${{ github.repository }}
@@ -30,6 +34,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       state: ${{ steps.probe.outputs.state }}
+      model_allowed: ${{ steps.probe.outputs.model_allowed }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -57,6 +62,8 @@ jobs:
         id: probe
         env:
           GH_TOKEN: ${{ github.token }}
+          MONITOR_VERIFY_MODEL: ${{ inputs.verify_model }}
+          MONITOR_MODEL_ENABLED: ${{ inputs.model_enabled }}
         run: |
           python3 .monitor-tools/monitor/monitor.py probe --config .github/display-monitor.json \
             --browser-results "$RUNNER_TEMP/browser.json" --output "$RUNNER_TEMP/observation.json"
@@ -73,11 +80,11 @@ jobs:
           path: ${{ runner.temp }}/monitor-input/
           include-hidden-files: true
           if-no-files-found: error
-          retention-days: 2
+          retention-days: 14
 
   repair:
     needs: inspect
-    if: needs.inspect.outputs.state == 'anomaly' || (inputs.verify_model && needs.inspect.outputs.state == 'healthy')
+    if: needs.inspect.outputs.model_allowed == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     outputs:
