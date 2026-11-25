@@ -109,6 +109,8 @@ def gateway(budget, key, model, opener=None):
     """Expose a bounded loopback route; the real key never reaches Codex/tools."""
     local_token = secrets.token_urlsafe(32)
     opener = opener or urllib.request.build_opener(NoRedirect()).open
+    histories = {}
+    history_lock = threading.Lock()
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *_args):
@@ -121,13 +123,30 @@ def gateway(budget, key, model, opener=None):
                 length = int(self.headers.get('Content-Length', '0'))
                 if not 0 < length <= MAX_REQUEST_BYTES or self.headers.get('Transfer-Encoding'):
                     raise ValueError('Unbounded model request')
-                body = budget.reserve(self.rfile.read(length), model)
+                value = json.loads(self.rfile.read(length))
+                previous = value.pop('previous_response_id', None)
+                if previous:
+                    with history_lock:
+                        if previous not in histories:
+                            raise ValueError('Unknown prior response; hidden context is forbidden')
+                        # Codex sends only new tool results with this shortcut.
+                        # Replay the explicit local history through the same byte
+                        # budget instead of delegating context growth to the server.
+                        value['input'] = histories[previous] + value.get('input', [])
+                body = budget.reserve(json.dumps(value).encode(), model)
                 request = urllib.request.Request(UPSTREAM, data=body, headers={
                     'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json',
                     'Accept': 'text/event-stream,application/json', 'User-Agent': 'omega-display-monitor-budget'})
                 # No transport retries: a lost response still consumes its reservation.
                 response = opener(request, timeout=90)
-            except (ValueError, OSError, KeyError, TypeError):
+            except (ValueError, OSError, KeyError, TypeError) as error:
+                reasons = ('Model session request/context budget exhausted', 'Model request context exceeds 128 KiB',
+                    'Only the fixed model and explicit bounded input are permitted',
+                    'Hosted billable tools are outside monitor scope',
+                    'Unknown prior response; hidden context is forbidden', 'Unregistered model route',
+                    'Unbounded model request')
+                detail = str(error) if str(error) in reasons else type(error).__name__
+                print('Model gateway stopped: ' + detail, flush=True)
                 self.send_error(403, 'Model request denied or unavailable; no automatic retry')
                 return
             with response:
@@ -136,7 +155,27 @@ def gateway(budget, key, model, opener=None):
                 self.end_headers()
                 try:
                     reader = getattr(response, 'read1', response.read)
+                    pending = b''
                     while data := reader(16384):
+                        pending += data
+                        pending = pending.replace(b'\r\n', b'\n')
+                        if len(pending) > 1024 * 1024:
+                            break
+                        while b'\n\n' in pending:
+                            event, pending = pending.split(b'\n\n', 1)
+                            for line in event.splitlines():
+                                if not line.startswith(b'data: '):
+                                    continue
+                                try:
+                                    item = json.loads(line[6:])
+                                except ValueError:
+                                    continue
+                                if item.get('type')=='response.completed':
+                                    completed = item.get('response')
+                                    if (isinstance(completed, dict) and isinstance(completed.get('id'), str)
+                                            and isinstance(value.get('input'), list) and isinstance(completed.get('output'), list)):
+                                        with history_lock:
+                                            histories[completed['id']] = value['input'] + completed['output']
                         self.wfile.write(data)
                         self.wfile.flush()
                 except (OSError, TimeoutError):

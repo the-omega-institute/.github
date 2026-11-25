@@ -133,5 +133,31 @@ class RequestBudgetTests(unittest.TestCase):
                 self.assertEqual(len(calls),2)
                 self.assertEqual(json.loads(budget.path.read_text())['requests'],2)
 
+    def test_tool_continuations_replay_local_context_and_still_hit_the_byte_limit(self):
+        calls=[]
+        first_input=[{'role':'user','content':'Fix one link.'}]
+        output=[{'type':'function_call','call_id':'call_1','name':'exec_command','arguments':'{}'}]
+        def opener(req,timeout):
+            value=json.loads(req.data);calls.append(value)
+            self.assertNotIn('previous_response_id',value)
+            if len(calls)==2:
+                self.assertEqual(value['input'],first_input+output+[{'type':'function_call_output','call_id':'call_1','output':'file content'}])
+            event={'type':'response.completed','response':{'id':'response_'+str(len(calls)),'output':output}}
+            response=io.BytesIO(('data: '+json.dumps(event)+'\r\n\r\n').encode())
+            response.headers={'Content-Type':'text/event-stream'}
+            return response
+        with tempfile.TemporaryDirectory() as d:
+            budget=b.RequestBudget(Path(d)/'budget.json')
+            with b.gateway(budget,'test','gpt-6.1-sol',opener) as (url,token):
+                def post(**values):
+                    req=urllib.request.Request(url+'/responses',data=self.request(**values),headers={'Authorization':'Bearer '+token})
+                    with urllib.request.urlopen(req,timeout=5) as response:return response.read()
+                post(input=first_input)
+                post(previous_response_id='response_1',input=[{'type':'function_call_output','call_id':'call_1','output':'file content'}])
+                # The new wire payload fits; its expanded context exceeds the cap.
+                with self.assertRaises(urllib.error.HTTPError):
+                    post(previous_response_id='response_2',input=[{'role':'user','content':'x'*(b.MAX_REQUEST_BYTES-200)}])
+                self.assertEqual(len(calls),2)
+
 
 if __name__=='__main__':unittest.main()
