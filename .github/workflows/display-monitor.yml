@@ -202,3 +202,21 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           MONITOR_GITHUB_KEY: ${{ secrets.github_key }}
         run: python3 monitor/monitor.py reconcile --config "$RUNNER_TEMP/monitor-input/.github/display-monitor.json" >> "$GITHUB_STEP_SUMMARY"
+      - name: Report unresolved production or display failures
+        if: always()
+        env:
+          OBSERVED_STATE: ${{ needs.inspect.outputs.state }}
+          REPAIR_STATE: ${{ needs.repair.outputs.state }}
+          SUBMIT_RESULT: ${{ needs.submit.result }}
+        run: |
+          if [ "$OBSERVED_STATE" = healthy ]; then
+            exit 0
+          fi
+          # Keep the originating candidate eligible for its existing PR checks.
+          # A later run still reports red until the public probes recover.
+          if [ "$REPAIR_STATE" = repaired ] && [ "$SUBMIT_RESULT" = success ]; then
+            echo '::notice::A checked repair PR was submitted; public recovery is still pending.'
+            exit 0
+          fi
+          echo '::error::Public display or production probes remain unhealthy. See the preserved observation and repair result.'
+          exit 1
