@@ -51,7 +51,12 @@ class ProfileTests(unittest.TestCase):
         self.assertNotIn("Earlier paper", updated)
         self.assertTrue(updated.startswith("Introduction stays.\n\n"))
         self.assertTrue(updated.endswith("\n\nContact stays.\n"))
-        self.assertIn("Official results are pending.", updated)
+        section = updated.split("## Recent publications\n", 1)[1].split("## Selected results\n", 1)[0]
+        self.assertIn("- **2026-11** · [New research](https://arxiv.org/abs/2610.00001)", section)
+        self.assertNotIn("2026-11-11", section)
+        self.assertNotIn("A. Author", section)
+        self.assertNotIn("Preprint", section)
+        self.assertNotIn("Official results are pending.", section)
 
     def test_featured_results_follow_published_order_and_retain_scope(self):
         values = publication()
@@ -75,21 +80,21 @@ class ProfileTests(unittest.TestCase):
         self.assertIn("**3 resolution records**", updated)
         self.assertIn("**2 proved** and **1 refuted**", updated)
 
-    def test_newest_publications_are_selected_without_a_fixed_list(self):
+    def test_all_publications_are_listed_in_date_order_without_a_fixed_list(self):
         values = publication()
         template = values[3]["publications"][0]
         values[3]["publications"] = [{**template, "id": "paper-" + str(n), "date": "2026-11-" + str(n).zfill(2),
                                       "title": "Publication " + str(n)} for n in range(1, 10)]
         updated = sync.update(DOCUMENT, values)
         self.assertLess(updated.index("Publication 9"), updated.index("Publication 8"))
-        self.assertIn("Publication 4", updated)
-        self.assertNotIn("Publication 3", updated)
+        for n in range(1, 10):
+            self.assertIn("[Publication " + str(n) + "]", updated)
         self.assertIn("**9 publication records**", updated)
 
     def test_month_precision_is_preserved_and_invalid_dates_are_rejected(self):
         values = publication()
         values[3]["publications"][0]["date"] = "2026-09"
-        self.assertIn("**2026-09 · Preprint**", sync.update(DOCUMENT, values))
+        self.assertIn("- **2026-09** · [Earlier paper]", sync.update(DOCUMENT, values))
         for invalid in ["2026-13", "2026-02-30", "2026-9", "2026-09 trailing"]:
             values[3]["publications"][0]["date"] = invalid
             with self.subTest(date=invalid), self.assertRaises(ValueError):
