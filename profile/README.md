@@ -21,18 +21,25 @@ assumptions and exact proof scope, so others can inspect them and take the next 
 
 ## Recent publications
 
-- **2026-11-11 · Preprint** — [Subadditivity and the failure of strong subadditivity in the Nichols--Wootters family of entropies](https://arxiv.org/abs/2611.15431).
-  Lin Zhang, Wenlin Zhang, Haobo Ma.
-- **2026-11-11 · Preprint** — [Meta-Nested Recurrences](https://arxiv.org/abs/2611.15815).
-  Benoît Cloitre, Haobo Ma, Wenlin Zhang.
-- **2026-11-04 · Preprint** — [Counting formulas and refined generating functions for inversion-sequence Classes 152 and 207](https://arxiv.org/abs/2611.21657).
-  Haobo Ma, Toufik Mansour, Wenlin Zhang.
-- **2026-11-03 · Preprint** — [Time-invariant negativity and persistent bound entanglement in a cyclic two-qutrit family](https://arxiv.org/abs/2611.04568).
-  Wenlin Zhang, Mazhar Ali, Haobo Ma.
-- **2026-11-03 · Preprint** — [Approximation of a continuous-variable Gaussian state by discrete-variable quantum states](https://arxiv.org/abs/2610.05623).
-  Nicolae Cotfas, Haobo Ma, Wenlin Zhang.
-- **2026-11-02 · Preprint** — [Well-Covered Powers: Cartesian Products and Cayley Graphs](https://arxiv.org/abs/2611.03956).
-  Haobo Ma, Thanh Vu, Wenlin Zhang.
+- **2026-11** · [Subadditivity and the failure of strong subadditivity in the Nichols--Wootters family of entropies](https://arxiv.org/abs/2611.15431)
+- **2026-11** · [Meta-Nested Recurrences](https://arxiv.org/abs/2611.15815)
+- **2026-11** · [Counting formulas and refined generating functions for inversion-sequence Classes 152 and 207](https://arxiv.org/abs/2611.21657)
+- **2026-11** · [Time-invariant negativity and persistent bound entanglement in a cyclic two-qutrit family](https://arxiv.org/abs/2611.04568)
+- **2026-11** · [Approximation of a continuous-variable Gaussian state by discrete-variable quantum states](https://arxiv.org/abs/2610.05623)
+- **2026-11** · [Well-Covered Powers: Cartesian Products and Cayley Graphs](https://arxiv.org/abs/2611.03956)
+- **2026-10** · [Maximal input entropy for binary two-deletion and two-insertion channels](https://arxiv.org/abs/2611.01064)
+- **2026-10** · [Block-exchange descent for insertion: commuting projections and minimum masks](https://arxiv.org/abs/2610.39941)
+- **2026-10** · [Residue Sums Modulo Products of Two Distinct Odd Primes](https://arxiv.org/abs/2610.29608)
+- **2026-10** · [Sharp zero forcing numbers for the generalized Petersen graphs P(n,3) and P(n,4)](https://arxiv.org/abs/2610.24059)
+- **2026-10** · [Generation by lazy and invertible cellular automata over the Klein four-group](https://arxiv.org/abs/2610.20329)
+- **2026-10** · [On the coincidence of discrete and continuous definitions of Entanglement of Formation](https://arxiv.org/abs/2610.18816)
+- **2026-09** · [A Padovan-automatic description of a nested recurrence](https://arxiv.org/abs/2609.33421)
+- **2026-09** · [Sub-quorum colorings of graphs](https://arxiv.org/abs/2609.25128)
+- **2026-09** · [Generalized Fidelity, the Data Processing Inequality, and Convexity](https://arxiv.org/abs/2609.09753)
+- **2026-09** · [A Certificate-Producing Cascade for Equational Implication: The SAIR EQT2 Stage 2 Solver](https://arxiv.org/abs/2609.00706)
+- **2026-09** · [Cross-Engine Admission Contracts for Autonomous Formalization](https://openreview.net/forum?id=xOAZvprLXO)
+- **2026-08** · [Canonical Zeckendorf Normalization and sharp iteration depth of the Berstel Adder](https://www.rairo-ita.org/articles/ita/abs/2026/01/ita20260032/ita20260032.html)
+- **2026-07** · [Mechanism-level routing failure in LLMs over Lean-verified algebraic structures](https://arxiv.org/abs/2607.04534)
 
 [All publications](https://www.trureturing.org/research.html#publications)
 

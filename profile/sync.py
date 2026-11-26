@@ -127,8 +127,7 @@ def validate(manifest, catalog, milestones, papers):
         require(row["id"] not in seen, "Duplicate publication identity")
         seen.add(row["id"])
         publication_date(row["date"])
-        for key in ("title", "authors", "status"):
-            text(row[key])
+        text(row["title"])
         url(row["url"])
 
 
@@ -138,13 +137,10 @@ def render(manifest, catalog, milestones, papers):
     source = "https://github.com/" + SOURCE_REPOSITORY + "/blob/" + manifest["source_commit"] + "/"
     lines = [BEGIN, "<!-- source_commit=" + manifest["source_commit"]
              + " release_digest=" + manifest["release_digest"] + " -->", "", "## Recent publications", ""]
-    recent = sorted(papers["publications"], key=lambda row: (row["date"], row["id"]), reverse=True)[:6]
-    for row in recent:
-        lines += [f'- **{row["date"]} · {label(row["status"])}** — [{label(row["title"])}]({url(row["url"])}).',
-                  "  " + text(row["authors"]) + "."]
-        if row.get("qualification"):
-            lines.append("  " + text(row["qualification"]))
-    if not recent:
+    publications = sorted(papers["publications"], key=lambda row: (row["date"], row["id"]), reverse=True)
+    for row in publications:
+        lines.append(f'- **{row["date"][:7]}** · [{label(row["title"])}]({url(row["url"])})')
+    if not publications:
         lines.append("Browse the [research page](" + SITE + "research.html) for public research updates.")
     lines += ["", "[All publications](" + SITE + "research.html#publications)", "", "## Selected results", ""]
     families = {row["id"]: row for row in catalog["families"]}
